@@ -1,0 +1,13 @@
+flask
+flask-cors
+scikit-learn
+pandas
+numpy
+shap
+google-generativeai
+pdf2image
+Pillow
+requests
+joblib
+python-dotenv
+gunicorn
