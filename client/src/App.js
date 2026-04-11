@@ -13,6 +13,7 @@ import ReportUpload from './pages/ReportUpload';
 import SymptomForm from './pages/SymptomForm';
 import Analyzing from './pages/Analyzing';
 import Result from './pages/Result';
+import Dashboard from './pages/Dashboard';
 
 const Placeholder = ({ name }) => (
   <div className="flex flex-col items-center justify-center min-h-[60vh] px-4 text-center">
@@ -68,7 +69,7 @@ function App() {
               <Route path="/register" element={<Register />} />
 
               {/* Protected Routes */}
-              <Route path="/dashboard" element={<ProtectedRoute><Placeholder name="Dashboard" /></ProtectedRoute>} />
+              <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
               <Route path="/predict" element={<ProtectedRoute><PatientInput /></ProtectedRoute>} />
               <Route path="/predict/upload" element={<ProtectedRoute><ReportUpload /></ProtectedRoute>} />
               <Route path="/predict/form" element={<ProtectedRoute><SymptomForm /></ProtectedRoute>} />

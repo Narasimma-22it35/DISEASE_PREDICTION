@@ -7,6 +7,7 @@ import {
   HiExclamation, HiLightningBolt, HiExternalLink, HiSearch 
 } from 'react-icons/hi';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import { generatePDFReport } from '../components/PDFReport';
 import toast from 'react-hot-toast';
 
 // Components
@@ -398,7 +399,16 @@ const Result = () => {
 
         {/* Action Bar */}
         <div className="mt-20 flex flex-col sm:flex-row items-center justify-center gap-4">
-           <button className="flex items-center space-x-3 bg-gray-900 text-white px-10 py-5 rounded-2xl font-black text-xs uppercase tracking-widest shadow-2xl hover:bg-black transition transform hover:-translate-y-1 active:scale-95">
+           <button 
+             onClick={() => {
+               toast.loading('Generating Clinical PDF Report...', { id: 'pdf-gen' });
+               setTimeout(() => {
+                 generatePDFReport(prediction, healthPlan);
+                 toast.success('Report Downloaded Successfully!', { id: 'pdf-gen' });
+               }, 1000);
+             }}
+             className="flex items-center space-x-3 bg-gray-900 text-white px-10 py-5 rounded-2xl font-black text-xs uppercase tracking-widest shadow-2xl hover:bg-black transition transform hover:-translate-y-1 active:scale-95"
+           >
               <HiDownload className="w-5 h-5" />
               <span>Download PDF Health Passport</span>
            </button>
