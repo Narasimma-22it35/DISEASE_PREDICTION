@@ -14,6 +14,7 @@ const upload = require('./routes/upload');
 const analyze = require('./routes/analyze');
 const healthplan = require('./routes/healthplan');
 const history = require('./routes/history');
+const errorHandler = require('./middleware/errorHandler');
 
 // Load env vars
 dotenv.config();
@@ -74,23 +75,17 @@ io.on('connection', (socket) => {
   });
 });
 
-// Multer and Global Error Handler Middleware
-app.use((err, req, res, next) => {
-  // Catch Multer errors
-  if (err instanceof multer.MulterError) {
-    if (err.code === 'LIMIT_FILE_SIZE') {
-      return res.status(400).json({ message: 'File too large. Max limit is 10MB.' });
-    }
-    return res.status(400).json({ message: err.message });
-  }
+// Socket.io initialization
+io.on('connection', (socket) => {
+  console.log('New client connected:', socket.id);
 
-  // Handle other errors
-  console.error(err.stack);
-  res.status(err.status || 500).json({
-    message: err.message || 'Internal Server Error',
-    error: process.env.NODE_ENV === 'development' ? err : {}
+  socket.on('disconnect', () => {
+    console.log('Client disconnected:', socket.id);
   });
 });
+
+// Error Handler (Must be after routes)
+app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
 
