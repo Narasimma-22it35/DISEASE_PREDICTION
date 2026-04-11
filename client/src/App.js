@@ -11,6 +11,8 @@ import Register from './pages/Register';
 import PatientInput from './pages/PatientInput';
 import ReportUpload from './pages/ReportUpload';
 import SymptomForm from './pages/SymptomForm';
+import Analyzing from './pages/Analyzing';
+import Result from './pages/Result';
 
 const Placeholder = ({ name }) => (
   <div className="flex flex-col items-center justify-center min-h-[60vh] px-4 text-center">
@@ -70,8 +72,8 @@ function App() {
               <Route path="/predict" element={<ProtectedRoute><PatientInput /></ProtectedRoute>} />
               <Route path="/predict/upload" element={<ProtectedRoute><ReportUpload /></ProtectedRoute>} />
               <Route path="/predict/form" element={<ProtectedRoute><SymptomForm /></ProtectedRoute>} />
-              <Route path="/analyzing" element={<ProtectedRoute><Placeholder name="AI Analysis in Progress" /></ProtectedRoute>} />
-              <Route path="/result/:predictionId" element={<ProtectedRoute><Placeholder name="Health Assessment Result" /></ProtectedRoute>} />
+              <Route path="/analyzing" element={<ProtectedRoute><Analyzing /></ProtectedRoute>} />
+              <Route path="/result/:predictionId" element={<ProtectedRoute><Result /></ProtectedRoute>} />
               
               {/* Fallback */}
               <Route path="*" element={<Navigate to="/" />} />
