@@ -5,10 +5,15 @@ const dotenv = require('dotenv');
 const cors = require('cors');
 const morgan = require('morgan');
 const helmet = require('helmet');
+const multer = require('multer');
 const connectDB = require('./config/db');
 
 // Route files
 const auth = require('./routes/auth');
+const upload = require('./routes/upload');
+const analyze = require('./routes/analyze');
+const healthplan = require('./routes/healthplan');
+const history = require('./routes/history');
 
 // Load env vars
 dotenv.config();
@@ -26,6 +31,9 @@ const io = socketio(server, {
   }
 });
 
+// App Settings
+app.set('io', io);
+
 // Body parser
 app.use(express.json());
 
@@ -36,7 +44,9 @@ app.use(cors({
 }));
 
 // Set security headers
-app.use(helmet());
+app.use(helmet({
+    crossOriginResourcePolicy: false, // For local image serving if needed
+}));
 
 // Dev logging middleware
 if (process.env.NODE_ENV === 'development') {
@@ -45,6 +55,10 @@ if (process.env.NODE_ENV === 'development') {
 
 // Mount routers
 app.use('/api/auth', auth);
+app.use('/api/upload', upload);
+app.use('/api/analyze', analyze);
+app.use('/api/healthplan', healthplan);
+app.use('/api/history', history);
 
 // Basic Route
 app.get('/', (req, res) => {
@@ -60,8 +74,17 @@ io.on('connection', (socket) => {
   });
 });
 
-// Global Error Handler Middleware
+// Multer and Global Error Handler Middleware
 app.use((err, req, res, next) => {
+  // Catch Multer errors
+  if (err instanceof multer.MulterError) {
+    if (err.code === 'LIMIT_FILE_SIZE') {
+      return res.status(400).json({ message: 'File too large. Max limit is 10MB.' });
+    }
+    return res.status(400).json({ message: err.message });
+  }
+
+  // Handle other errors
   console.error(err.stack);
   res.status(err.status || 500).json({
     message: err.message || 'Internal Server Error',
@@ -82,5 +105,4 @@ process.on('unhandledRejection', (err, promise) => {
   server.close(() => process.exit(1));
 });
 
-// Export io for use elsewhere
 module.exports = { app, server, io };
