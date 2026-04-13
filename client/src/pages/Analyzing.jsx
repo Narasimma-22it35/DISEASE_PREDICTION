@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { HiCheckCircle, HiArrowRight } from 'react-icons/hi';
+import { motion } from 'framer-motion';
+import { HiCheckCircle } from 'react-icons/hi';
+import axios from 'axios';
 
 const Analyzing = () => {
   const navigate = useNavigate();
@@ -21,6 +22,23 @@ const Analyzing = () => {
     { text: "Your report is ready! ✅", duration: 1500 }
   ];
 
+  const [isApiFinished, setIsApiFinished] = useState(false);
+
+  useEffect(() => {
+    if (predictionId) {
+      axios.post('/api/healthplan/generate', { predictionId })
+        .then(() => setIsApiFinished(true))
+        .catch(err => {
+          // Don't crash the page — just proceed to result, errors shown there
+          console.error('Health plan generation error:', err?.response?.data || err.message);
+          setIsApiFinished(true);
+        });
+    } else {
+      // No predictionId means user navigated here directly — bounce back
+      setIsApiFinished(true);
+    }
+  }, [predictionId]);
+
   useEffect(() => {
     if (currentStep < steps.length) {
       const timer = setTimeout(() => {
@@ -30,17 +48,19 @@ const Analyzing = () => {
 
       return () => clearTimeout(timer);
     } else {
-      // Final navigation
-      const finalTimer = setTimeout(() => {
-        if (predictionId) {
-          navigate(`/result/${predictionId}`);
-        } else {
-          navigate('/dashboard'); // Fallback
-        }
-      }, 1000);
-      return () => clearTimeout(finalTimer);
+      // Final navigation waits for both animation and API
+      if (isApiFinished) {
+        const finalTimer = setTimeout(() => {
+          if (predictionId) {
+            navigate(`/result/${predictionId}`);
+          } else {
+            navigate('/predict'); // No prediction — send back to form
+          }
+        }, 1000);
+        return () => clearTimeout(finalTimer);
+      }
     }
-  }, [currentStep, navigate, predictionId, steps]);
+  }, [currentStep, navigate, predictionId, steps, isApiFinished]);
 
   return (
     <div className="min-h-screen bg-[#0a0b1e] flex flex-col items-center justify-center p-4 overflow-hidden relative">

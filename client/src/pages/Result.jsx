@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   HiDownload, HiRefresh, HiChartSquareBar, HiCursorClick, HiCheckCircle, 
-  HiExclamation, HiLightningBolt, HiExternalLink, HiSearch 
+  HiExclamation, HiLightningBolt, HiExternalLink, HiSearch, HiArrowRight 
 } from 'react-icons/hi';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { generatePDFReport } from '../components/PDFReport';
@@ -18,6 +18,8 @@ import ProsCons from '../components/HealthPlan/ProsCons';
 import FoodGuide from '../components/HealthPlan/FoodGuide';
 import DosAndDonts from '../components/HealthPlan/DosAndDonts';
 import ExerciseVideos from '../components/HealthPlan/ExerciseVideos';
+import VoiceAssistant from '../components/VoiceAssistant';
+import NearbyDoctors from '../components/NearbyDoctors';
 
 const Result = () => {
   const { predictionId } = useParams();
@@ -25,6 +27,7 @@ const Result = () => {
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState(null);
   const [activeTab, setActiveTab] = useState('Summary');
+  const [showConsult, setShowConsult] = useState(false);
 
   useEffect(() => {
     const fetchHealthPlan = async () => {
@@ -49,13 +52,13 @@ const Result = () => {
   );
 
   const { prediction, healthPlan } = data;
-  const primaryPrediction = prediction.results[0]; // Assuming highest risk first
-  const secondaryPredictions = prediction.results.slice(1);
+  const primaryPrediction = prediction?.results?.[0] || {}; 
+  const secondaryPredictions = prediction?.results?.slice(1) || [];
 
   // Chart Data for Risk Factors
-  const chartData = prediction.riskFactors.slice(0, 5).map(rf => ({
-    name: rf.feature.split('_').join(' '),
-    impact: Math.round(rf.impact * 100)
+  const chartData = (prediction?.riskFactors || []).slice(0, 5).map(rf => ({
+    name: rf?.feature?.split('_').join(' ') || 'Unknown',
+    impact: Math.round((rf?.impact || 0) * 100)
   }));
 
   const tabs = [
@@ -77,6 +80,12 @@ const Result = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
+      {/* Nearby Doctors Modal */}
+      <NearbyDoctors
+        isOpen={showConsult}
+        onClose={() => setShowConsult(false)}
+        disease={healthPlan?.disease}
+      />
       {/* Header */}
       <div className="bg-white border-b border-gray-100 flex flex-col">
         <div className="max-w-7xl mx-auto px-4 py-8 w-full">
@@ -85,15 +94,15 @@ const Result = () => {
               <div className="flex items-center space-x-2">
                 <span className="bg-blue-600 text-white px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest leading-none">Global Health Report</span>
                 <span className="text-gray-300">/</span>
-                <span className="text-gray-400 text-[10px] font-black uppercase tracking-widest">{new Date(prediction.createdAt).toLocaleDateString()}</span>
+                <span className="text-gray-400 text-[10px] font-black uppercase tracking-widest">{prediction?.createdAt ? new Date(prediction.createdAt).toLocaleDateString() : 'Today'}</span>
               </div>
               <h1 className="text-4xl font-black text-gray-900 tracking-tight">
-                Health Assessment: <span className="text-blue-600">{prediction.patientId.name}</span>
+                Health Assessment: <span className="text-blue-600">{prediction?.patientId?.personalInfo?.name || 'Patient'}</span>
               </h1>
               <div className="flex flex-wrap gap-2">
-                <span className="px-3 py-1 bg-gray-50 text-gray-500 rounded-full text-xs font-bold border border-gray-100">{prediction.patientId.age} Years</span>
-                <span className="px-3 py-1 bg-gray-50 text-gray-500 rounded-full text-xs font-bold border border-gray-100 capitalize">{prediction.patientId.gender}</span>
-                <span className="px-3 py-1 bg-gray-50 text-gray-500 rounded-full text-xs font-bold border border-gray-100">ID: #{prediction._id.slice(-6).toUpperCase()}</span>
+                <span className="px-3 py-1 bg-gray-50 text-gray-500 rounded-full text-xs font-bold border border-gray-100">{prediction?.patientId?.personalInfo?.age || '?'} Years</span>
+                <span className="px-3 py-1 bg-gray-50 text-gray-500 rounded-full text-xs font-bold border border-gray-100 capitalize">{prediction?.patientId?.personalInfo?.gender || 'Unknown'}</span>
+                <span className="px-3 py-1 bg-gray-50 text-gray-500 rounded-full text-xs font-bold border border-gray-100">ID: #{prediction?._id?.slice(-6)?.toUpperCase()}</span>
               </div>
             </div>
 
@@ -108,12 +117,12 @@ const Result = () => {
       </div>
 
       {/* Urgent Banner */}
-      {primaryPrediction.confidence > 80 && (
+      {primaryPrediction?.confidence > 80 && (
         <div className="bg-red-600 text-white py-4 px-4 sticky top-16 z-30 shadow-2xl">
            <div className="max-w-7xl mx-auto flex items-center justify-between">
               <div className="flex items-center space-x-3">
                  <HiExclamation className="w-6 h-6 animate-pulse" />
-                 <span className="text-sm font-black uppercase tracking-widest">Urgent Medical Attention Recommended: {primaryPrediction.disease} Detected</span>
+                 <span className="text-sm font-black uppercase tracking-widest">Urgent Medical Attention Recommended: {primaryPrediction?.disease} Detected</span>
               </div>
               <button className="hidden sm:block text-xs font-black uppercase border border-white/50 px-4 py-2 rounded-full hover:bg-white hover:text-red-600 transition">Contact Specialist</button>
            </div>
@@ -214,21 +223,31 @@ const Result = () => {
                       </div>
                    </div>
                 </div>
-                <button className="w-full mt-8 py-4 bg-blue-600 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-blue-700 transition">Book Consult Now</button>
+                 <button
+                   onClick={() => setShowConsult(true)}
+                   className="w-full mt-8 py-4 bg-blue-600 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-blue-700 transition active:scale-95 flex items-center justify-center space-x-2"
+                 >
+                   <span>🏥</span><span>Book Consult Now</span>
+                 </button>
              </div>
 
              <div className="bg-white p-8 rounded-[40px] border border-gray-100 shadow-xl shadow-blue-50/50">
                 <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-4">Urgent Warning Signs</h3>
                 <div className="space-y-4">
-                   {healthPlan.plan.warning_signs.slice(0, 3).map((sign, i) => (
+                   {(healthPlan?.plan?.warning_signs || []).slice(0, 3).map((sign, i) => (
                      <div key={i} className="flex flex-col p-4 bg-red-50 rounded-2xl border border-red-100">
-                        <span className="text-xs font-black text-red-900 mb-1">{sign.sign}</span>
-                        <span className="text-[10px] text-red-600 font-bold">{sign.urgency} Action Required</span>
+                        <span className="text-xs font-black text-red-900 mb-1">{sign?.sign}</span>
+                        <span className="text-[10px] text-red-600 font-bold">{sign?.urgency} Action Required</span>
                      </div>
                    ))}
                 </div>
              </div>
           </div>
+        </div>
+
+        {/* Voice Assistant - Accessible health report reading */}
+        <div className="mt-10 max-w-7xl mx-auto px-4">
+          <VoiceAssistant prediction={prediction} healthPlan={healthPlan} />
         </div>
 
         {/* Tab Navigation */}
@@ -378,14 +397,14 @@ const Result = () => {
                               </tr>
                            </thead>
                            <tbody className="divide-y divide-gray-50">
-                              {healthPlan.plan.monthly_checkups.map((test, i) => (
+                              {(healthPlan?.plan?.monthly_checkups || []).map((test, i) => (
                                 <tr key={i} className="hover:bg-gray-50/50 transition duration-300">
-                                   <td className="px-8 py-6 font-black text-gray-900 text-sm">{test.test}</td>
+                                   <td className="px-8 py-6 font-black text-gray-900 text-sm">{test?.test}</td>
                                    <td className="px-8 py-6">
-                                      <span className="px-3 py-1 bg-blue-50 text-blue-600 text-[10px] font-black uppercase rounded-full">{test.frequency}</span>
+                                      <span className="px-3 py-1 bg-blue-50 text-blue-600 text-[10px] font-black uppercase rounded-full">{test?.frequency}</span>
                                    </td>
-                                   <td className="px-8 py-6 text-sm text-gray-500 font-medium leading-relaxed max-w-[300px]">{test.why}</td>
-                                   <td className="px-8 py-6 text-xs font-black text-gray-400 italic">{test.normal_range}</td>
+                                   <td className="px-8 py-6 text-sm text-gray-500 font-medium leading-relaxed max-w-[300px]">{test?.why}</td>
+                                   <td className="px-8 py-6 text-xs font-black text-gray-400 italic">{test?.normal_range}</td>
                                 </tr>
                               ))}
                            </tbody>

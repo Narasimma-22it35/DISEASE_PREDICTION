@@ -19,27 +19,59 @@ router.post('/', protect, async (req, res) => {
     return res.status(400).json({ message: 'Personal info (name, age, gender) is required' });
   }
 
+  // Normalize enums for MongoDB Patient schema constraints
+  if (personalInfo.gender) personalInfo.gender = personalInfo.gender.toLowerCase();
+  
+  if (lifestyle) {
+    if (lifestyle.smoking) lifestyle.smoking = lifestyle.smoking.toLowerCase();
+    if (lifestyle.alcohol) lifestyle.alcohol = lifestyle.alcohol.toLowerCase();
+    if (lifestyle.exercise) lifestyle.exercise = lifestyle.exercise.toLowerCase();
+    if (lifestyle.diet) lifestyle.diet = lifestyle.diet.toLowerCase();
+    if (lifestyle.stressLevel) lifestyle.stressLevel = lifestyle.stressLevel.toLowerCase();
+  }
+
+  // Normalize family history from object of booleans to array of strings
+  let formattedFamilyHistory = familyHistory;
+  if (familyHistory && !Array.isArray(familyHistory) && typeof familyHistory === 'object') {
+    formattedFamilyHistory = Object.keys(familyHistory).filter(key => familyHistory[key]);
+  }
+
+  // Normalize symptoms from arrays/objects to Mongoose Subdocument Schema
+  let formattedSymptoms = [];
+  if (Array.isArray(symptoms)) {
+    if (symptoms.length > 0 && typeof symptoms[0] === 'string') {
+      const details = req.body.symptomDetails || {};
+      formattedSymptoms = symptoms.map(s => ({
+        name: s,
+        severity: details[s] && details[s].severity ? details[s].severity.toLowerCase() : undefined,
+        duration: details[s] && details[s].duration ? details[s].duration : undefined
+      }));
+    } else {
+      formattedSymptoms = symptoms;
+    }
+  }
+
   try {
     // 2. Save/Update Patient in MongoDB
     let patient = await Patient.findOne({ userId: req.user.id });
     
     if (patient) {
       patient.personalInfo = personalInfo;
-      patient.symptoms = symptoms;
+      patient.symptoms = formattedSymptoms;
       patient.vitalSigns = vitalSigns;
       patient.labValues = labValues;
       patient.lifestyle = lifestyle;
-      patient.familyHistory = familyHistory;
+      patient.familyHistory = formattedFamilyHistory;
       await patient.save();
     } else {
       patient = new Patient({
         userId: req.user.id,
         personalInfo,
-        symptoms,
+        symptoms: formattedSymptoms,
         vitalSigns,
         labValues,
         lifestyle,
-        familyHistory
+        familyHistory: formattedFamilyHistory
       });
       await patient.save();
     }

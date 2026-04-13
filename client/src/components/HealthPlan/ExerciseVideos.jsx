@@ -10,20 +10,28 @@ const ExerciseVideos = ({ exercises = [] }) => {
       {exercises.map((item, i) => (
         <div key={i} className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden flex flex-col group hover:shadow-xl hover:shadow-blue-50/50 transition-all">
           {/* YouTube Thumbnail with Play Button */}
-          <div className="relative aspect-video w-full overflow-hidden">
+          <div className="relative aspect-video w-full overflow-hidden bg-gray-900">
              <img 
-               src={item.video?.thumbnail || `https://img.youtube.com/vi/${item.video?.videoId}/maxresdefault.jpg`} 
+               src={item.video?.thumbnail || `https://img.youtube.com/vi/default/maxresdefault.jpg`} 
                alt={item.name}
-               className="w-full h-full object-cover group-hover:scale-110 transition duration-500"
+               className="w-full h-full object-cover group-hover:scale-110 transition duration-500 opacity-80"
+               onError={e => { e.target.onerror = null; e.target.src = 'https://via.placeholder.com/640x360/1a1a2e/6366f1?text=Exercise+Guide'; }}
              />
-             <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition duration-300 flex items-center justify-center">
+             <div className="absolute inset-0 bg-black/30 group-hover:bg-black/50 transition duration-300 flex items-center justify-center">
                 <a 
-                  href={item.video?.url || `https://www.youtube.com/watch?v=${item.video?.videoId}`}
+                  href={item.video?.url || `https://www.youtube.com/results?search_query=${encodeURIComponent(item.name)}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-16 h-16 bg-red-600 text-white rounded-full flex items-center justify-center shadow-2xl transform group-hover:scale-125 transition duration-300"
+                  className="flex flex-col items-center space-y-2"
                 >
-                  <HiPlay className="w-8 h-8 ml-1" />
+                  <div className="w-16 h-16 bg-red-600 hover:bg-red-700 text-white rounded-full flex items-center justify-center shadow-2xl transform group-hover:scale-125 transition duration-300">
+                    <HiPlay className="w-8 h-8 ml-1" />
+                  </div>
+                  {item.video?.isSearchLink && (
+                    <span className="bg-white/90 text-gray-900 text-[10px] font-black uppercase px-3 py-1 rounded-full tracking-widest">
+                      🔍 Search on YouTube
+                    </span>
+                  )}
                 </a>
              </div>
              <div className="absolute bottom-4 left-4 right-4">

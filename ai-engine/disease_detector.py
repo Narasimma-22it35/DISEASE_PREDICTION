@@ -9,7 +9,7 @@ load_dotenv()
 # Configure Gemini
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
-model = genai.GenerativeModel('gemini-1.5-pro')
+model = genai.GenerativeModel('gemini-2.5-flash')
 
 def detect_diseases(patient_data: dict):
     """
@@ -61,7 +61,8 @@ def detect_diseases(patient_data: dict):
     """
 
     try:
-        response = model.generate_content(prompt)
+        from retry_helper import generate_with_fallback
+        response = generate_with_fallback([prompt])
         text = response.text.strip()
         
         # Clean response text

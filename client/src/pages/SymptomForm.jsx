@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
-import { HiArrowLeft, HiArrowRight, HiCheck, HiInformationCircle, HiHeart, HiBeaker, HiScale, HiClock, HiSave } from 'react-icons/hi';
+import { HiArrowLeft, HiArrowRight, HiCheck, HiInformationCircle, HiHeart, HiBeaker, HiScale, HiClock, HiSave, HiUser } from 'react-icons/hi';
 import toast from 'react-hot-toast';
 import SymptomSelector from '../components/SymptomSelector';
 
@@ -535,6 +535,5 @@ const SymptomForm = () => {
 };
 
 // Internal Import for Step Icons not explicitly mentioned in prompt but needed for consistency
-import { HiUser } from 'react-icons/hi';
 
 export default SymptomForm;

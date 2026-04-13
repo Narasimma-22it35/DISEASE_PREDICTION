@@ -12,33 +12,44 @@ load_dotenv()
 # Configure Gemini
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
-model = genai.GenerativeModel('gemini-1.5-flash')
+model = genai.GenerativeModel('gemini-2.5-flash')
 
 def read_medical_report(file_path: str):
     """
     Reads medical report from image or PDF using Gemini 1.5 Flash.
     """
     file_extension = os.path.splitext(file_path)[1].lower()
-    images = []
+    content_parts = []
 
     if file_extension == '.pdf':
         # Convert first 3 pages of PDF to images
         try:
             pages = convert_from_path(file_path, first_page=1, last_page=3)
             for page in pages:
-                images.append(page)
+                content_parts.append(page)
         except Exception as e:
             raise Exception(f"Failed to convert PDF: {str(e)}")
     elif file_extension in ['.jpg', '.jpeg', '.png']:
         try:
-            images.append(Image.open(file_path))
+            content_parts.append(Image.open(file_path))
         except Exception as e:
             raise Exception(f"Failed to open image: {str(e)}")
+    elif file_extension == '.csv':
+        try:
+            with open(file_path, 'r', encoding='utf-8') as f:
+                csv_schema_and_data = f.read()
+                # Truncate to prevent LLM context flooding and timeouts on large datasets like heart.csv
+                if len(csv_schema_and_data) > 3000:
+                    csv_schema_and_data = csv_schema_and_data[:3000] + "\n...[TRUNCATED_DUE_TO_SIZE]"
+                
+                content_parts.append(f"CSV Data:\n{csv_schema_and_data}\n\nIMPORTANT INSTRUCTION: If this CSV contains multiple rows mapping to multiple patients, YOU MUST ONLY extract the biometric data for the VERY FIRST patient (first data row). Ignore everyone else.")
+        except Exception as e:
+            raise Exception(f"Failed to read CSV: {str(e)}")
     else:
-        raise Exception("Unsupported file format. Please upload a PDF or Image.")
+        raise Exception("Unsupported file format. Please upload a PDF, Image, or CSV.")
 
-    if not images:
-        raise Exception("No readable pages found in the report.")
+    if not content_parts:
+        raise Exception("No readable pages or content found in the report.")
 
     prompt = """
     You are a medical report analyzer. 
@@ -83,8 +94,9 @@ def read_medical_report(file_path: str):
     """
 
     try:
+        from retry_helper import generate_with_fallback
         # Prepare inputs for Gemini
-        response = model.generate_content([prompt] + images)
+        response = generate_with_fallback([prompt] + content_parts)
         
         # Clean response text (remove json fences if present)
         text = response.text.strip()

@@ -22,7 +22,8 @@ const ReportUpload = () => {
     accept: {
       'application/pdf': ['.pdf'],
       'image/jpeg': ['.jpg', '.jpeg'],
-      'image/png': ['.png']
+      'image/png': ['.png'],
+      'text/csv': ['.csv']
     },
     multiple: false
   });

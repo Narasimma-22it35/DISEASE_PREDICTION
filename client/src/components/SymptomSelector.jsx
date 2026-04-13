@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { HiSearch, HiX, HiChevronDown, HiChevronUp, HiPlus } from 'react-icons/hi';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const SYMPTOMS_DATA = {
   "General": ["Fatigue", "Weakness", "Fever", "Weight Loss", "Weight Gain", "Night Sweats", "Loss of Appetite"],
@@ -136,6 +137,5 @@ const SymptomSelector = ({ selected = [], onChange }) => {
 
 // Simple AnimatePresence internal helper if motion is used 
 // (though for brevity I used conditional rendering, but I'll add motion for real premium feel)
-import { motion, AnimatePresence } from 'framer-motion';
 
 export default SymptomSelector;
