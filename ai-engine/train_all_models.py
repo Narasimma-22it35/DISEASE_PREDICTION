@@ -76,17 +76,21 @@ def train_kidney():
     try:
         df = pd.read_csv('datasets/kidney_disease.csv')
         df.replace('?', np.nan, inplace=True)
-        df.dropna(inplace=True)
         
-        # Mapping target
-        df['classification'] = df['classification'].apply(lambda x: 1 if 'ckd' in str(x) else 0)
-        
-        # Specify features (assuming names match dataset)
+        # Specify features
         features = ['age', 'bp', 'sg', 'al', 'su', 'bgr', 'bu', 'sc', 'sod', 'pot', 'hemo', 'pcv', 'wc', 'rc']
+        
         # Convert necessary columns to numeric
         for col in features:
             df[col] = pd.to_numeric(df[col], errors='coerce')
-        df.dropna(subset=features, inplace=True)
+            
+        # Fill missing values with median instead of dropping
+        df[features] = df[features].fillna(df[features].median())
+        # Drop rows with missing target
+        df.dropna(subset=['classification'], inplace=True)
+        
+        # Mapping target (ckd -> 1, notckd -> 0)
+        df['classification'] = df['classification'].apply(lambda x: 1 if str(x).strip() == 'ckd' else 0)
         
         X = df[features]
         y = df['classification']
@@ -116,13 +120,21 @@ def train_liver():
         df = pd.read_csv('datasets/liver_disease.csv')
         df.fillna(df.median(), inplace=True)
         
-        # Encode Gender
-        df['Gender'] = df['Gender'].map({'Male': 1, 'Female': 0})
+        # Encode Gender only if it contains strings
+        if df['Gender'].dtype == 'object':
+            df['Gender'] = df['Gender'].map({'Male': 1, 'Female': 0})
+        
+        # Ensure Gender is numeric and fill NAs if mapping failed
+        df['Gender'] = pd.to_numeric(df['Gender'], errors='coerce').fillna(0)
         
         # Target convert: 1->1, 2->0
         df['Dataset'] = df['Dataset'].map({1: 1, 2: 0})
         
         features = ['Age', 'Gender', 'Total_Bilirubin', 'Direct_Bilirubin', 'Alkaline_Phosphotase', 'Alamine_Aminotransferase', 'Aspartate_Aminotransferase', 'Total_Protiens', 'Albumin', 'Albumin_and_Globulin_Ratio']
+        
+        # Drop rows with NaNs in the required features
+        df.dropna(subset=features, inplace=True)
+        
         X = df[features]
         y = df['Dataset']
         

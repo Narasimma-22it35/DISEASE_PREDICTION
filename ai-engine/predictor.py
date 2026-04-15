@@ -50,8 +50,15 @@ def run_ml_prediction(model_key, patient_data):
     input_array = np.array([input_values])
     input_scaled = scaler.transform(input_array)
 
-    # Get prediction probability
-    risk_proba = model.predict_proba(input_scaled)[0][1]
+    # Get prediction probability safely
+    if len(model.classes_) > 1:
+        # Standard binary classification (class 0 and class 1)
+        risk_proba = model.predict_proba(input_scaled)[0][1]
+    else:
+        # Single class model fallback (prevent index out of bounds)
+        only_class = model.classes_[0]
+        risk_proba = 1.0 if only_class == 1 else 0.0
+        
     risk_percentage = round(float(risk_proba) * 100, 2)
 
     # SHAP Explainability

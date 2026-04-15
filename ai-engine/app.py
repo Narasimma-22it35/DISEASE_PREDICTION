@@ -50,6 +50,9 @@ def upload_report():
         
         return jsonify(analysis_result), 200
     except Exception as e:
+        import traceback
+        print(f"ERROR IN /upload-report: {str(e)}")
+        traceback.print_exc()
         # Cleanup on error if file exists
         if os.path.exists(file_path):
             os.remove(file_path)
@@ -101,6 +104,11 @@ def detect():
 
         return jsonify(diagnosis), 200
     except Exception as e:
+        import traceback
+        print("\n" + "!"*30)
+        print(f"CRITICAL ERROR IN /detect-diseases: {str(e)}")
+        traceback.print_exc()
+        print("!"*30 + "\n")
         return jsonify({"error": str(e)}), 500
 
 @app.route('/health-plan', methods=['POST'])
@@ -122,6 +130,9 @@ def health_plan():
         plan = generate_health_plan(disease, risk_level, severity, patient_data)
         return jsonify(plan), 200
     except Exception as e:
+        import traceback
+        print(f"ERROR IN /health-plan: {str(e)}")
+        traceback.print_exc()
         return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
