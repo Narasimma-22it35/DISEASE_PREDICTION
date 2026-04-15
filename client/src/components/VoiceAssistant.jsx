@@ -7,34 +7,47 @@ const LANGUAGES = {
 };
 
 const VoiceAssistant = ({ prediction, healthPlan }) => {
-  const [isPlaying, setIsPlaying]     = useState(false);
-  const [isPaused,  setIsPaused]      = useState(false);
-  const [currentLine, setCurrentLine] = useState('');
-  const [isSupported, setIsSupported] = useState(true);
-  const [language, setLanguage]       = useState('en');
-  const [voices, setVoices]           = useState([]);
+  const [isPlaying, setIsPlaying]        = useState(false);
+  const [isPaused,  setIsPaused]         = useState(false);
+  const [currentLine, setCurrentLine]    = useState('');
+  const [isSupported, setIsSupported]    = useState(true);
+  const [language, setLanguage]          = useState('en');
+  const [tamilVoice, setTamilVoice]      = useState(null);   // found Tamil voice or null
+  const [voicesLoaded, setVoicesLoaded]  = useState(false);
   const lineIndexRef = useRef(0);
 
-  // Load voices eagerly (Chrome lazy-loads them)
+  /* ── Load voices and detect Tamil ── */
   useEffect(() => {
     if (!window.speechSynthesis) { setIsSupported(false); return; }
-    const load = () => setVoices(window.speechSynthesis.getVoices());
-    load();
-    window.speechSynthesis.onvoiceschanged = load;
+
+    const detectTamil = () => {
+      const all = window.speechSynthesis.getVoices();
+      if (!all.length) return;
+      const ta = all.find(v =>
+        v.lang === 'ta-IN' ||
+        v.lang === 'ta'    ||
+        v.lang.startsWith('ta') ||
+        v.name.toLowerCase().includes('tamil')
+      );
+      setTamilVoice(ta || null);
+      setVoicesLoaded(true);
+    };
+
+    detectTamil();
+    window.speechSynthesis.onvoiceschanged = detectTamil;
+
     return () => { window.speechSynthesis.cancel(); };
   }, []);
 
-  /* ──────────────────────────────────────────────
-     BUILD SCRIPTS
-  ────────────────────────────────────────────── */
+  /* ─────────── SCRIPTS ─────────── */
   const buildEnglishScript = () => {
     const name      = prediction?.patientId?.personalInfo?.name || prediction?.patientId?.name || 'Dear Patient';
     const disease   = healthPlan?.disease   || 'an unknown condition';
     const riskLevel = healthPlan?.riskLevel || 'moderate';
     const severity  = healthPlan?.severity  || 'moderate';
-    const dos       = healthPlan?.plan?.dos   || [];
-    const donts     = healthPlan?.plan?.donts || [];
-    const tips      = healthPlan?.plan?.overcome_tips || [];
+    const dos   = healthPlan?.plan?.dos   || [];
+    const donts = healthPlan?.plan?.donts || [];
+    const tips  = healthPlan?.plan?.overcome_tips || [];
 
     const lines = [
       `Hello, ${name}. This is your HealthGuard AI health report.`,
@@ -113,24 +126,24 @@ const VoiceAssistant = ({ prediction, healthPlan }) => {
     return lines;
   };
 
-  /* ──────────────────────────────────────────────
-     SPEAKER ENGINE
-  ────────────────────────────────────────────── */
+  /* ─────────── VOICE PICKER ─────────── */
   const pickVoice = (langCode) => {
     const all = window.speechSynthesis.getVoices();
     if (langCode === 'ta') {
-      return all.find(v => v.lang === 'ta-IN' || v.lang.startsWith('ta')) || null;
+      /* Return the detected Tamil voice; if none, return null (lang will still be set) */
+      return tamilVoice || null;
     }
     return (
       all.find(v => v.name.includes('Google UK English Female')) ||
-      all.find(v => v.name.includes('Samantha')) ||
-      all.find(v => v.name.includes('Microsoft Zira')) ||
-      all.find(v => v.lang === 'en-IN') ||
-      all.find(v => v.lang.startsWith('en')) ||
+      all.find(v => v.name.includes('Samantha'))               ||
+      all.find(v => v.name.includes('Microsoft Zira'))         ||
+      all.find(v => v.lang === 'en-IN')                        ||
+      all.find(v => v.lang.startsWith('en'))                   ||
       all[0]
     );
   };
 
+  /* ─────────── SPEAK ENGINE ─────────── */
   const speakLine = (lines, index, langCode) => {
     if (index >= lines.length) {
       setIsPlaying(false);
@@ -138,22 +151,33 @@ const VoiceAssistant = ({ prediction, healthPlan }) => {
       lineIndexRef.current = 0;
       return;
     }
+
     const line = lines[index];
     setCurrentLine(line);
     lineIndexRef.current = index;
 
     const utt   = new SpeechSynthesisUtterance(line);
     const voice = pickVoice(langCode);
-    if (voice) utt.voice = voice;
+
+    /* Always set the lang – even without a dedicated voice,
+       modern browsers (Chrome ≥ 90) will attempt to synthesise
+       with the correct regional accent if the OS has the language pack. */
     utt.lang   = LANGUAGES[langCode].lang;
-    utt.rate   = langCode === 'ta' ? 0.80 : 0.85;
-    utt.pitch  = 1.05;
+    if (voice) utt.voice = voice;
+    utt.rate   = langCode === 'ta' ? 0.82 : 0.85;
+    utt.pitch  = 1.0;
     utt.volume = 1;
+
     utt.onend  = () => speakLine(lines, index + 1, langCode);
-    utt.onerror = () => speakLine(lines, index + 1, langCode);
+    utt.onerror = (e) => {
+      // Skip on error and continue
+      speakLine(lines, index + 1, langCode);
+    };
+
     window.speechSynthesis.speak(utt);
   };
 
+  /* ─────────── CONTROLS ─────────── */
   const handlePlay = () => {
     if (!isSupported) return;
     window.speechSynthesis.cancel();
@@ -162,28 +186,19 @@ const VoiceAssistant = ({ prediction, healthPlan }) => {
     setIsPaused(false);
     lineIndexRef.current = 0;
 
+    const startSpeaking = () => speakLine(lines, 0, language);
     if (window.speechSynthesis.getVoices().length === 0) {
-      window.speechSynthesis.onvoiceschanged = () => speakLine(lines, 0, language);
+      window.speechSynthesis.onvoiceschanged = startSpeaking;
     } else {
-      speakLine(lines, 0, language);
+      startSpeaking();
     }
   };
 
-  const handlePause = () => {
-    window.speechSynthesis.pause();
-    setIsPaused(true);
-  };
-
-  const handleResume = () => {
-    window.speechSynthesis.resume();
-    setIsPaused(false);
-  };
-
-  const handleStop = () => {
+  const handlePause  = () => { window.speechSynthesis.pause();  setIsPaused(true);  };
+  const handleResume = () => { window.speechSynthesis.resume(); setIsPaused(false); };
+  const handleStop   = () => {
     window.speechSynthesis.cancel();
-    setIsPlaying(false);
-    setIsPaused(false);
-    setCurrentLine('');
+    setIsPlaying(false); setIsPaused(false); setCurrentLine('');
   };
 
   const handleLanguageSwitch = (code) => {
@@ -193,18 +208,19 @@ const VoiceAssistant = ({ prediction, healthPlan }) => {
 
   if (!isSupported) return null;
 
-  const isTamil = language === 'ta';
+  const isTamil      = language === 'ta';
   const gradientClass = isTamil
     ? 'from-orange-600 via-rose-700 to-pink-800'
     : 'from-indigo-700 via-blue-800 to-purple-900';
+  const accentColor   = isTamil ? '#fb923c' : '#60a5fa';
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className={`bg-gradient-to-br ${gradientClass} rounded-[32px] p-1 shadow-2xl mb-8`}
+      className={`bg-gradient-to-br ${gradientClass} rounded-[32px] p-[1px] shadow-2xl mb-8`}
     >
-      <div className="bg-black/20 backdrop-blur-xl rounded-[30px] p-6 border border-white/10">
+      <div className="bg-black/25 backdrop-blur-xl rounded-[31px] p-6 border border-white/10">
 
         {/* ── TOP ROW ── */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -232,7 +248,7 @@ const VoiceAssistant = ({ prediction, healthPlan }) => {
                   ? (isTamil ? '🔊 அறிக்கை படிக்கப்படுகிறது...' : '🔊 Reading your health report...')
                   : isPaused
                   ? (isTamil ? '⏸ இடைநிறுத்தப்பட்டது' : '⏸ Paused — click Resume')
-                  : (isTamil ? 'உங்கள் நோயறிதலை கேளுங்கள்' : 'Listen to your diagnosis')}
+                  : (isTamil ? 'உங்கள் நோயறிதலை கேளுங்கள்' : 'Listen to your full diagnosis aloud')}
               </p>
             </div>
           </div>
@@ -256,11 +272,38 @@ const VoiceAssistant = ({ prediction, healthPlan }) => {
           </div>
         </div>
 
-        {/* ── CONTROLS ── */}
+        {/* ── Tamil voice warning (only shown when Tamil is selected & no Tamil voice found) ── */}
+        <AnimatePresence>
+          {isTamil && voicesLoaded && !tamilVoice && (
+            <motion.div
+              initial={{ opacity: 0, height: 0, marginTop: 0 }}
+              animate={{ opacity: 1, height: 'auto', marginTop: 12 }}
+              exit={{ opacity: 0, height: 0, marginTop: 0 }}
+              className="bg-amber-500/20 border border-amber-400/30 rounded-2xl px-4 py-3 overflow-hidden"
+            >
+              <div className="flex items-start space-x-3">
+                <span className="text-amber-300 text-lg flex-shrink-0">⚠️</span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-amber-200 text-xs font-black mb-1">Tamil Voice Not Found on This Device</p>
+                  <p className="text-amber-300/70 text-[11px] font-medium leading-relaxed">
+                    Tamil subtitles are shown. To hear Tamil audio, install the Tamil language pack:
+                  </p>
+                  <div className="mt-2 text-[11px] text-amber-200/80 space-y-1 font-medium">
+                    <p>• <strong>Windows:</strong> Settings → Time &amp; Language → Speech → Add voices → Tamil (India)</p>
+                    <p>• <strong>Chrome:</strong> chrome://settings/languages → Add Tamil → restart browser</p>
+                    <p>• <strong>Android:</strong> Settings → General Management → Language → Text-to-Speech → Tamil</p>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* ── Controls ── */}
         <div className="mt-5 flex items-center gap-3 flex-wrap">
           {!isPlaying ? (
             <motion.button
-              whileTap={{ scale: 0.95 }}
+              whileTap={{ scale: 0.95 }} whileHover={{ scale: 1.03 }}
               onClick={handlePlay}
               className="flex items-center space-x-2 bg-white text-gray-900 px-6 py-3 rounded-2xl font-black text-sm hover:bg-gray-100 transition shadow-xl shadow-black/20"
             >
@@ -290,8 +333,8 @@ const VoiceAssistant = ({ prediction, healthPlan }) => {
             </>
           )}
 
-          {/* Waveform bars (decorative, animate when playing) */}
-          <div className="ml-auto flex items-end space-x-1 h-8">
+          {/* Animated waveform bars */}
+          <div className="ml-auto flex items-end space-x-1 h-8 opacity-60">
             {[0.4, 0.7, 1, 0.6, 0.9, 0.5, 0.8, 0.3].map((h, i) => (
               <motion.div
                 key={i}
@@ -300,14 +343,14 @@ const VoiceAssistant = ({ prediction, healthPlan }) => {
                   : { scaleY: h * 0.3 }
                 }
                 transition={{ repeat: Infinity, duration: 0.9 + i * 0.07, ease: 'easeInOut' }}
-                className="w-1.5 bg-white/40 rounded-full origin-bottom"
-                style={{ height: '100%' }}
+                className="w-1.5 rounded-full origin-bottom"
+                style={{ height: '100%', backgroundColor: accentColor }}
               />
             ))}
           </div>
         </div>
 
-        {/* ── LIVE SUBTITLE ── */}
+        {/* ── Live Subtitle / Caption ── */}
         <AnimatePresence mode="wait">
           {isPlaying && currentLine && (
             <motion.div
@@ -322,29 +365,31 @@ const VoiceAssistant = ({ prediction, healthPlan }) => {
               <motion.div
                 animate={{ x: ['-100%', '200%'] }}
                 transition={{ repeat: Infinity, duration: 2.5, ease: 'linear' }}
-                className="absolute inset-y-0 w-1/3 bg-gradient-to-r from-transparent via-white/10 to-transparent pointer-events-none"
+                className="absolute inset-y-0 w-1/3 bg-gradient-to-r from-transparent via-white/8 to-transparent pointer-events-none"
               />
-              <div className="flex items-center space-x-2 mb-2">
+
+              {/* Waveform dots */}
+              <div className="flex items-center space-x-1.5 mb-2">
                 {[...Array(6)].map((_, i) => (
                   <motion.div key={i}
-                    animate={isPaused ? { scaleY: 1 } : { scaleY: [1, 2.5, 0.8, 2, 1] }}
+                    animate={isPaused ? { scaleY: 0.5 } : { scaleY: [1, 2.5, 0.8, 2, 1] }}
                     transition={{ repeat: Infinity, duration: 0.7, delay: i * 0.1 }}
                     className="w-1 h-3 rounded-full origin-bottom"
-                    style={{ backgroundColor: isTamil ? '#fb923c' : '#60a5fa' }}
+                    style={{ backgroundColor: accentColor }}
                   />
                 ))}
-                <span className="ml-1 text-white/40 text-[10px] font-black uppercase tracking-widest">
+                <span className="ml-2 text-white/40 text-[10px] font-black uppercase tracking-widest">
                   {isTamil ? 'இப்போது பேசுகிறது' : 'Now Speaking'}
                 </span>
               </div>
-              <p className={`text-white font-medium text-sm leading-relaxed ${isTamil ? 'font-normal' : ''}`}>
+              <p className="text-white font-medium text-sm leading-relaxed relative z-10">
                 "{currentLine}"
               </p>
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* ── FOOTER TIP ── */}
+        {/* ── Footer Tip ── */}
         <p className="mt-4 text-white/30 text-[10px] font-bold uppercase tracking-widest text-center">
           {isTamil
             ? '🔇 சாதன ஒலியை அதிகமாக வைக்கவும் • Chrome, Edge மற்றும் Safari இல் செயல்படுகிறது'
