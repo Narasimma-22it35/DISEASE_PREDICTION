@@ -1,5 +1,5 @@
 import React from 'react';
-import { HiCheckCircle, HiExclamationCircle, HiLightningBolt } from 'react-icons/hi';
+import { HiCheckCircle, HiExclamationCircle } from 'react-icons/hi';
 
 const ProsCons = ({ pros = [], cons = [] }) => {
   return (

@@ -12,7 +12,7 @@ const Analyzing = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState([]);
 
-  const steps = [
+  const steps = useMemo(() => [
     { text: "Reading your health data...", duration: 1500 },
     { text: "Analyzing symptoms with AI...", duration: 2000 },
     { text: "Running disease detection...", duration: 2500 },
@@ -20,7 +20,7 @@ const Analyzing = () => {
     { text: "Generating personalized health plan...", duration: 2500 },
     { text: "Fetching exercise videos...", duration: 2000 },
     { text: "Your report is ready! ✅", duration: 1500 }
-  ];
+  ], []);
 
   const [isApiFinished, setIsApiFinished] = useState(false);
 

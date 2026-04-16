@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { HiFire, HiClock, HiCheckCircle, HiExclamationCircle, HiChevronRight } from 'react-icons/hi';
+import { HiFire, HiClock, HiCheckCircle } from 'react-icons/hi';
 
 const FoodGuide = ({ foods = [], fruits = [], vegetables = [], avoid = [] }) => {
   const [activeTab, setActiveTab] = useState('Foods');

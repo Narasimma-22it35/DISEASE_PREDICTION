@@ -1,5 +1,5 @@
 import React from 'react';
-import { HiCheckCircle, HiExclamationCircle, HiShieldCheck, HiOutlineSparkles } from 'react-icons/hi';
+import { HiCheckCircle, HiExclamationCircle, HiShieldCheck } from 'react-icons/hi';
 
 const DosAndDonts = ({ dos = [], donts = [] }) => {
   return (

@@ -15,16 +15,6 @@ import Analyzing from './pages/Analyzing';
 import Result from './pages/Result';
 import Dashboard from './pages/Dashboard';
 
-const Placeholder = ({ name }) => (
-  <div className="flex flex-col items-center justify-center min-h-[60vh] px-4 text-center">
-    <div className="w-20 h-20 bg-blue-100 rounded-2xl flex items-center justify-center mb-6 animate-pulse">
-       <span className="text-4xl text-blue-600">⏳</span>
-    </div>
-    <h2 className="text-3xl font-black text-gray-800 tracking-tight">{name} Page</h2>
-    <p className="text-gray-500 mt-2 max-w-sm">We are currently processing your request or building this feature. Please check back in a moment.</p>
-  </div>
-);
-
 const ProtectedRoute = ({ children }) => {
   const { token, loading } = useAuth();
 

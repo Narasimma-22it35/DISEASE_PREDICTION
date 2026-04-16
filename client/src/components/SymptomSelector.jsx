@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { HiSearch, HiX, HiChevronDown, HiChevronUp, HiPlus } from 'react-icons/hi';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence } from 'framer-motion';
 
 const SYMPTOMS_DATA = {
   "General": ["Fatigue", "Weakness", "Fever", "Weight Loss", "Weight Gain", "Night Sweats", "Loss of Appetite"],
