@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
-import { HiArrowLeft, HiArrowRight, HiCheck, HiInformationCircle, HiHeart, HiBeaker, HiScale, HiClock, HiSave, HiUser } from 'react-icons/hi';
+import { HiArrowLeft, HiArrowRight, HiCheck, HiInformationCircle, HiHeart, HiBeaker, HiScale, HiSave, HiUser } from 'react-icons/hi';
 import toast from 'react-hot-toast';
 import SymptomSelector from '../components/SymptomSelector';
 

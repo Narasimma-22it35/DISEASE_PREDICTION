@@ -3,8 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  HiDownload, HiRefresh, HiChartSquareBar, HiCursorClick, HiCheckCircle, 
-  HiExclamation, HiLightningBolt, HiExternalLink, HiSearch, HiArrowRight 
+  HiDownload, HiRefresh, HiExclamation, HiLightningBolt, HiArrowRight 
 } from 'react-icons/hi';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { generatePDFReport } from '../components/PDFReport';
