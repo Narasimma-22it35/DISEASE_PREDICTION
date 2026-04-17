@@ -12,7 +12,7 @@ load_dotenv()
 # Configure Gemini
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
-model = genai.GenerativeModel('gemini-2.5-flash')
+model = genai.GenerativeModel('gemini-1.5-flash')
 
 def read_medical_report(file_path: str):
     """
@@ -98,13 +98,28 @@ def read_medical_report(file_path: str):
         # Prepare inputs for Gemini
         response = generate_with_fallback([prompt] + content_parts)
         
-        # Clean response text (remove json fences if present)
+        # Use a more robust regex to find the JSON block in the response
+        import re
         text = response.text.strip()
-        if text.startswith('```json'):
-            text = text[7:]
-        if text.endswith('```'):
-            text = text[:-3]
+        print(f"[GEMINI] Raw response (first 200 chars): {text[:200]}...")
         
-        return json.loads(text.strip())
+        if not text:
+            print("[GEMINI] ERROR: Received empty response from model.")
+            raise Exception("AI model returned an empty response.")
+
+        json_match = re.search(r'\{.*\}', text, re.DOTALL)
+        if json_match:
+            text = json_match.group(0)
+            print("[GEMINI] JSON block extracted.")
+        else:
+            print("[GEMINI] WARNING: No JSON block found, attempting to parse raw text.")
+        
+        try:
+            return json.loads(text)
+        except json.JSONDecodeError as je:
+            print(f"[GEMINI] JSON PARSE ERROR: {str(je)}")
+            print(f"[GEMINI] FAILED TEXT: {text}")
+            raise Exception("Failed to parse AI response as JSON.")
     except Exception as e:
+        print(f"[GEMINI] CRITICAL ERROR: {str(e)}")
         raise Exception(f"Gemini API Error: {str(e)}")

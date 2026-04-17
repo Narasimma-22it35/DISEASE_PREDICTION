@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { motion } from 'framer-motion';
 import { 
   HiPlus, HiTrash, HiEye, HiChevronLeft, HiChevronRight, 
   HiChartPie, HiPresentationChartLine, HiTrendingUp, HiExclamation,

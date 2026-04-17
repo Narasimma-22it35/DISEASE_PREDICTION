@@ -4,7 +4,7 @@ import google.generativeai as genai
 # A unified cascading fallback algorithm for Gemini Free Tier rate limit protection
 # It retries within the same model using Exponential Backoff, and cascades to other 
 # versions in the 2.x and 1.x pipeline if the primary quota is completely depleted.
-MODEL_CASCADE = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-flash-latest', 'gemini-2.5-pro', 'gemma-3-27b-it']
+MODEL_CASCADE = ['models/gemini-2.5-flash', 'models/gemini-2.0-flash', 'models/gemini-flash-latest', 'models/gemini-pro-latest']
 
 def generate_with_fallback(prompt_parts, max_retries=3, base_delay=10):
     """

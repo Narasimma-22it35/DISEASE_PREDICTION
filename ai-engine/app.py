@@ -40,10 +40,14 @@ def upload_report():
 
     file_path = os.path.join(UPLOAD_FOLDER, file.filename)
     try:
+        print(f"\n--- [AI ENGINE] INCOMING REPORT: {file.filename} ---")
         file.save(file_path)
+        print(f"[AI ENGINE] File saved to: {file_path}")
         
         # Analyze report using Gemini
+        print("[AI ENGINE] Calling read_medical_report...")
         analysis_result = read_medical_report(file_path)
+        print("[AI ENGINE] Analysis SUCCESSFUL!")
         
         # Cleanup: Delete temp file
         os.remove(file_path)
@@ -51,7 +55,7 @@ def upload_report():
         return jsonify(analysis_result), 200
     except Exception as e:
         import traceback
-        print(f"ERROR IN /upload-report: {str(e)}")
+        print(f"\n!!! [AI ENGINE] ERROR IN /upload-report: {str(e)} !!!")
         traceback.print_exc()
         # Cleanup on error if file exists
         if os.path.exists(file_path):

@@ -60,15 +60,20 @@ router.post('/report', protect, upload.single('report'), async (req, res) => {
     formData.append('report', fs.createReadStream(filePath));
 
     // 2. Send to Python AI Engine
+    console.log(`\n--- [BACKEND] SENDING TO AI ENGINE ---`);
+    console.log(`[BACKEND] Target URL: ${process.env.PYTHON_API}/upload-report`);
+    
     const pythonResponse = await axios.post(
       `${process.env.PYTHON_API}/upload-report`,
       formData,
       {
         headers: {
           ...formData.getHeaders()
-        }
+        },
+        timeout: 60000 // 60 seconds timeout
       }
     );
+    console.log(`[BACKEND] AI ENGINE SUCCESS! Status: ${pythonResponse.status}`);
 
     // 3. Cleanup: Delete local file
     fs.unlinkSync(filePath);
