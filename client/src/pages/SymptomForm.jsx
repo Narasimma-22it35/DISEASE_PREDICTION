@@ -158,6 +158,17 @@ const SymptomForm = () => {
               {/* Step 1: About You */}
               {step === 1 && (
                 <motion.div key="step1" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="space-y-10">
+                  {extractedData && (
+                    <div className="bg-indigo-50 border-2 border-indigo-200 rounded-3xl p-6 text-indigo-900 shadow-sm flex items-start space-x-4 mb-4">
+                      <div className="text-3xl mt-1">🤖</div>
+                      <div>
+                        <h4 className="font-black text-lg mb-1 tracking-tight">AI Extracted Your Details!</h4>
+                        <p className="font-bold text-sm text-indigo-700/80 leading-relaxed">
+                           We found your blood values, but <span className="text-indigo-900 underline decoration-indigo-300 decoration-2">reports don't show how you're feeling physically!</span> Please verify these details and tell us about any pain, fever, or actual symptoms on the next screens.
+                        </p>
+                      </div>
+                    </div>
+                  )}
                   <div>
                     <h2 className="text-4xl font-black text-slate-900 tracking-tight mb-2">About You</h2>
                     <p className="text-slate-500 text-lg font-medium">Please tell us who you are so we can help better.</p>

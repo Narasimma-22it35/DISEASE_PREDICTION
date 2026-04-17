@@ -26,13 +26,17 @@ const storage = multer.diskStorage({
 
 // File filter for images, PDFs, and CSVs
 const fileFilter = (req, file, cb) => {
-  // Allow common CSV mimetypes (text/csv, application/vnd.ms-excel, etc.)
-  const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf', 'text/csv', 'application/vnd.ms-excel', 'application/csv', 'text/x-csv', 'application/x-csv', 'text/comma-separated-values', 'text/x-comma-separated-values'];
+  // Allow common CSV, Word docs, Images, and PDFs
+  const allowedTypes = [
+    'image/jpeg', 'image/png', 'image/jpg', 'application/pdf', 
+    'text/csv', 'application/vnd.ms-excel', 'application/csv', 'text/x-csv', 'application/x-csv', 'text/comma-separated-values', 'text/x-comma-separated-values',
+    'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+  ];
   
-  if (allowedTypes.includes(file.mimetype) || file.originalname.toLowerCase().endsWith('.csv')) {
+  if (allowedTypes.includes(file.mimetype) || file.originalname.toLowerCase().match(/\.(csv|doc|docx)$/)) {
     cb(null, true);
   } else {
-    cb(new Error(`Invalid file type (${file.mimetype}). Only JPEG, PNG, PDF, and CSV are allowed.`), false);
+    cb(new Error(`Invalid file type (${file.mimetype}). Only JPEG, PNG, PDF, CSV, and DOCX are allowed.`), false);
   }
 };
 

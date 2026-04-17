@@ -22,16 +22,22 @@ def read_medical_report(file_path: str):
     content_parts = []
 
     if file_extension == '.pdf':
-        # Convert first 3 pages of PDF to images
         try:
-            pages = convert_from_path(file_path, first_page=1, last_page=3)
-            for page in pages:
-                content_parts.append(page)
+            with open(file_path, "rb") as pdf_file:
+                content_parts.append({
+                    "mime_type": "application/pdf",
+                    "data": pdf_file.read()
+                })
         except Exception as e:
-            raise Exception(f"Failed to convert PDF: {str(e)}")
+            raise Exception(f"Failed to read PDF file: {str(e)}")
     elif file_extension in ['.jpg', '.jpeg', '.png']:
         try:
-            content_parts.append(Image.open(file_path))
+            mime = "image/png" if file_extension == '.png' else "image/jpeg"
+            with open(file_path, "rb") as img_file:
+                content_parts.append({
+                    "mime_type": mime,
+                    "data": img_file.read()
+                })
         except Exception as e:
             raise Exception(f"Failed to open image: {str(e)}")
     elif file_extension == '.csv':
@@ -45,8 +51,19 @@ def read_medical_report(file_path: str):
                 content_parts.append(f"CSV Data:\n{csv_schema_and_data}\n\nIMPORTANT INSTRUCTION: If this CSV contains multiple rows mapping to multiple patients, YOU MUST ONLY extract the biometric data for the VERY FIRST patient (first data row). Ignore everyone else.")
         except Exception as e:
             raise Exception(f"Failed to read CSV: {str(e)}")
+    elif file_extension in ['.doc', '.docx']:
+        try:
+            import docx
+            doc_file = docx.Document(file_path)
+            doc_text = "\n".join([paragraph.text for paragraph in doc_file.paragraphs])
+            # Truncate if maliciously large
+            if len(doc_text) > 10000:
+                doc_text = doc_text[:10000] + "\n...[TRUNCATED]"
+            content_parts.append(f"Word Document Data:\n{doc_text}")
+        except Exception as e:
+            raise Exception(f"Failed to read Word Document: {str(e)}")
     else:
-        raise Exception("Unsupported file format. Please upload a PDF, Image, or CSV.")
+        raise Exception("Unsupported file format. Please upload a PDF, Image, CSV, or Word Document.")
 
     if not content_parts:
         raise Exception("No readable pages or content found in the report.")

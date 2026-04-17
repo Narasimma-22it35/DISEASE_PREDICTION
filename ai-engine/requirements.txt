@@ -11,3 +11,4 @@ requests
 joblib
 python-dotenv
 gunicorn
+python-docx

@@ -5,7 +5,7 @@ import { jsPDF } from 'jspdf';
  */
 export const generatePDFReport = (prediction, healthPlan) => {
   const doc = new jsPDF();
-  const userName = prediction.patientId.name || 'Patient';
+  const userName = prediction.patientId.personalInfo?.name || 'Patient';
   const reportDate = new Date(prediction.createdAt).toLocaleDateString();
   const reportId = prediction._id.slice(-8).toUpperCase();
 
@@ -33,8 +33,8 @@ export const generatePDFReport = (prediction, healthPlan) => {
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(11);
   doc.text(`Name: ${userName}`, 15, 75);
-  doc.text(`Age: ${prediction.patientId.age} Years`, 15, 82);
-  doc.text(`Gender: ${prediction.patientId.gender}`, 15, 89);
+  doc.text(`Age: ${prediction.patientId.personalInfo?.age || 'N/A'} Years`, 15, 82);
+  doc.text(`Gender: ${prediction.patientId.personalInfo?.gender || 'N/A'}`, 15, 89);
   doc.text(`Report date: ${reportDate}`, 120, 75);
   doc.text(`Report ID: #${reportId}`, 120, 82);
 

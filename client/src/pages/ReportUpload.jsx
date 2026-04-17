@@ -23,6 +23,8 @@ const ReportUpload = () => {
       'application/pdf': ['.pdf'],
       'image/jpeg': ['.jpg', '.jpeg'],
       'image/png': ['.png'],
+      'application/msword': ['.doc'],
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx']
     },
     multiple: false
   });
@@ -41,7 +43,8 @@ const ReportUpload = () => {
       setExtractedData(res.data);
       toast.success('AI Finished reading!');
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to read report.');
+      const detail = err.response?.data?.error?.error || err.response?.data?.message || 'Failed to read report.';
+      toast.error(detail, { duration: 6000 });
     } finally {
       setIsReading(false);
     }

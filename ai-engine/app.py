@@ -1,4 +1,5 @@
 import os
+import sys
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from dotenv import load_dotenv
@@ -12,12 +13,27 @@ from predictor import run_ml_prediction, combine_predictions
 # Load env vars
 load_dotenv()
 
+# Force unbuffered output for real-time terminal logging
+os.environ['PYTHONUNBUFFERED'] = '1'
+
 app = Flask(__name__)
 CORS(app) # Enable CORS for all origins
 
 # Ensure uploads directory exists
 UPLOAD_FOLDER = 'uploads'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+def log_ai(msg, level="INFO"):
+    """Custom logger to ensure terminal output is shown immediately."""
+    prefix = "🚀 [AI ENGINE]" if level == "INFO" else "⚠️ [AI ERROR]"
+    print(f"{prefix} {msg}", flush=True)
+
+# Startup confirmation
+print("\n" + "="*50)
+log_ai("HealthGuard AI Engine is initializing...")
+log_ai(f"Gemini API Status: {'Connected' if os.getenv('GEMINI_API_KEY') else 'DISCONNECTED (Check .env)'}")
+log_ai("Server listening on http://localhost:5001")
+print("="*50 + "\n", flush=True)
 
 @app.route('/health', methods=['GET'])
 def health_check():
@@ -40,24 +56,19 @@ def upload_report():
 
     file_path = os.path.join(UPLOAD_FOLDER, file.filename)
     try:
-        print(f"\n--- [AI ENGINE] INCOMING REPORT: {file.filename} ---")
+        log_ai(f"Incoming medical report upload: {file.filename}")
         file.save(file_path)
-        print(f"[AI ENGINE] File saved to: {file_path}")
         
-        # Analyze report using Gemini
-        print("[AI ENGINE] Calling read_medical_report...")
+        log_ai("Parsing report with Gemini Vision...")
         analysis_result = read_medical_report(file_path)
-        print("[AI ENGINE] Analysis SUCCESSFUL!")
+        log_ai("Report analysis SUCCESSFUL!")
         
         # Cleanup: Delete temp file
         os.remove(file_path)
         
         return jsonify(analysis_result), 200
     except Exception as e:
-        import traceback
-        print(f"\n!!! [AI ENGINE] ERROR IN /upload-report: {str(e)} !!!")
-        traceback.print_exc()
-        # Cleanup on error if file exists
+        log_ai(f"Error in /upload-report: {str(e)}", level="ERROR")
         if os.path.exists(file_path):
             os.remove(file_path)
         return jsonify({"error": str(e)}), 500
@@ -70,50 +81,33 @@ def detect():
         return jsonify({"error": "Missing patient data"}), 400
 
     try:
+        log_ai(f"Starting disease detection for patient...")
+        
         # 1. Get Gemini Diagnosis
         diagnosis = detect_diseases(patient_data)
-        print("output diagnosis: ", diagnosis)
+        log_ai(f"Primary Diagnosis Found: {diagnosis.get('primary_disease', {}).get('name')}")
         
         # 2. Process Primary Disease with ML if available
         primary = diagnosis.get('primary_disease')
         if primary and primary.get('ml_model_available') and primary.get('ml_model_key') != 'none':
             model_key = primary.get('ml_model_key')
+            log_ai(f"ML Processing requested for: {model_key}")
             
-            # Run ML Prediction
             ml_result = run_ml_prediction(model_key, patient_data)
             
             if 'error' not in ml_result:
-                # Combine Gemini risk and ML risk
                 gemini_risk = primary.get('risk_percentage', 0)
                 ml_risk = ml_result.get('risk_percentage', 0)
-                
                 final_risk = combine_predictions(gemini_risk, ml_risk)
                 
-                # Update diagnosis object
                 primary['risk_percentage'] = final_risk
                 primary['ml_result'] = ml_result
                 primary['ml_applied'] = True
+                log_ai(f"ML Analysis combined. Final Risk: {final_risk}%")
         
-        # 3. Process Other Diseases with ML if available
-        others = diagnosis.get('other_diseases', [])
-        for disease in others:
-            if disease.get('ml_model_available') and disease.get('ml_model_key') != 'none':
-                m_key = disease.get('ml_model_key')
-                ml_res = run_ml_prediction(m_key, patient_data)
-                
-                if 'error' not in ml_res:
-                    g_risk = disease.get('risk_percentage', 0)
-                    m_risk = ml_res.get('risk_percentage', 0)
-                    disease['risk_percentage'] = combine_predictions(g_risk, m_risk)
-                    disease['ml_applied'] = True
-
         return jsonify(diagnosis), 200
     except Exception as e:
-        import traceback
-        print("\n" + "!"*30)
-        print(f"CRITICAL ERROR IN /detect-diseases: {str(e)}")
-        traceback.print_exc()
-        print("!"*30 + "\n")
+        log_ai(f"Critical error in /detect-diseases: {str(e)}", level="ERROR")
         return jsonify({"error": str(e)}), 500
 
 @app.route('/health-plan', methods=['POST'])
@@ -128,18 +122,23 @@ def health_plan():
     severity = data.get('severity')
     patient_data = data.get('patient_data')
 
-    if not all([disease, risk_level, severity, patient_data]):
-        return jsonify({"error": "Incomplete data for health plan generation"}), 400
-
     try:
+        log_ai(f"Generating personalized health plan for {disease}...")
         plan = generate_health_plan(disease, risk_level, severity, patient_data)
+        log_ai("Health plan generation COMPLETE!")
         return jsonify(plan), 200
     except Exception as e:
-        import traceback
-        print(f"ERROR IN /health-plan: {str(e)}")
-        traceback.print_exc()
+        log_ai(f"Error in /health-plan: {str(e)}", level="ERROR")
         return jsonify({"error": str(e)}), 500
 
+@app.errorhandler(Exception)
+def handle_exception(e):
+    """Global error handler for the AI Engine."""
+    log_ai(f"UNHANDLED EXCEPTION: {str(e)}", level="ERROR")
+    import traceback
+    traceback.print_exc()
+    return jsonify({"error": "Internal AI Engine Error", "details": str(e)}), 500
+
 if __name__ == '__main__':
-    # Listen on all interfaces for internal network access if needed
-    app.run(host='0.0.0.0', port=5001, debug=True)
+    # threaded=True is vital for ensuring the server stays responsive during long AI tasks
+    app.run(host='0.0.0.0', port=5001, debug=True, threaded=True)
