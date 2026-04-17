@@ -1,12 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { HiX, HiLocationMarker, HiPhone, HiArrowRight } from 'react-icons/hi';
 
-/**
- * NearbyDoctors Modal
- * Uses the browser Geolocation API to find nearby hospitals & doctors.
- * Opens Google Maps search results for the patient's actual location.
- * No API key required.
- */
 const NearbyDoctors = ({ isOpen, onClose, disease }) => {
   const [locationState, setLocationState] = useState('idle'); // idle | loading | success | error
   const [coords, setCoords] = useState(null);
@@ -29,7 +24,6 @@ const NearbyDoctors = ({ isOpen, onClose, disease }) => {
         const { latitude, longitude } = pos.coords;
         setCoords({ lat: latitude, lng: longitude });
 
-        // Reverse geocode using a free API (no key needed)
         try {
           const res = await fetch(
             `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
@@ -49,7 +43,6 @@ const NearbyDoctors = ({ isOpen, onClose, disease }) => {
     );
   };
 
-  // Build Google Maps search query based on disease and location
   const buildMapsUrl = (type) => {
     const specialistMap = {
       'Diabetes': 'endocrinologist+diabetologist',
@@ -63,46 +56,25 @@ const NearbyDoctors = ({ isOpen, onClose, disease }) => {
     const specialist = specialistMap[disease] || 'general+physician+doctor';
 
     if (coords) {
-      const query = type === 'hospital'
-        ? `hospitals+near+me`
-        : `${specialist}+near+me`;
+      const query = type === 'hospital' ? `hospitals+near+me` : `${specialist}+near+me`;
       return `https://www.google.com/maps/search/${query}/@${coords.lat},${coords.lng},14z`;
     }
-    // Fallback — search without coords
     const query = type === 'hospital' ? 'hospitals near me' : `${specialist.replace(/\+/g, ' ')} near me`;
     return `https://www.google.com/maps/search/${encodeURIComponent(query)}`;
   };
 
-  // Emergency numbers by country/region (detected from location name)
   const getEmergencyContacts = () => {
     const loc = locationName.toLowerCase();
-    if (loc.includes('india') || loc.includes('tamil') || loc.includes('delhi') || loc.includes('mumbai') || loc.includes('bengaluru') || loc.includes('chennai') || loc.includes('hyderabad')) {
+    if (loc.includes('india') || loc.includes('chennai') || loc.includes('tamil')) {
       return [
-        { label: '🚑 Ambulance', number: '108', color: 'bg-red-50 border-red-200 text-red-700' },
-        { label: '🏥 AIIMS Helpline', number: '011-26588500', color: 'bg-orange-50 border-orange-200 text-orange-700' },
-        { label: '🆘 Emergency', number: '112', color: 'bg-red-50 border-red-200 text-red-700' },
-        { label: '❤️ Heart Attack Helpline', number: '1800-180-1104', color: 'bg-pink-50 border-pink-200 text-pink-700' },
-        { label: '💊 Poison Control', number: '1800-11-6117', color: 'bg-purple-50 border-purple-200 text-purple-700' },
+        { label: '🚑 Ambulance', number: '108', color: 'bg-rose-50 border-rose-100 text-rose-700' },
+        { label: '🏥 Health Help', number: '104', color: 'bg-blue-50 border-blue-100 text-blue-700' },
+        { label: '🆘 Emergency', number: '112', color: 'bg-rose-50 border-rose-100 text-rose-700' },
       ];
     }
-    if (loc.includes('usa') || loc.includes('united states') || loc.includes('california') || loc.includes('new york')) {
-      return [
-        { label: '🚑 Emergency', number: '911', color: 'bg-red-50 border-red-200 text-red-700' },
-        { label: '🏥 Poison Control', number: '1-800-222-1222', color: 'bg-purple-50 border-purple-200 text-purple-700' },
-        { label: '❤️ Heart Attack', number: '911', color: 'bg-pink-50 border-pink-200 text-pink-700' },
-      ];
-    }
-    if (loc.includes('uk') || loc.includes('england') || loc.includes('london')) {
-      return [
-        { label: '🚑 Ambulance', number: '999', color: 'bg-red-50 border-red-200 text-red-700' },
-        { label: '🏥 NHS Helpline', number: '111', color: 'bg-blue-50 border-blue-200 text-blue-700' },
-      ];
-    }
-    // Global default
     return [
-      { label: '🚑 Ambulance', number: '108 / 911 / 999', color: 'bg-red-50 border-red-200 text-red-700' },
-      { label: '🆘 General Emergency', number: '112', color: 'bg-orange-50 border-orange-200 text-orange-700' },
-      { label: '🏥 Local Hospital', number: 'Search Below ↓', color: 'bg-blue-50 border-blue-200 text-blue-700' },
+      { label: '🚑 Ambulance', number: '911 / 999 / 108', color: 'bg-rose-50 border-rose-100 text-rose-700' },
+      { label: '🏥 Any Emergency', number: '112', color: 'bg-blue-50 border-blue-100 text-blue-700' },
     ];
   };
 
@@ -114,151 +86,102 @@ const NearbyDoctors = ({ isOpen, onClose, disease }) => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+        className="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[100] flex items-center justify-center p-4"
         onClick={(e) => e.target === e.currentTarget && onClose()}
       >
         <motion.div
-          initial={{ scale: 0.9, opacity: 0, y: 20 }}
+          initial={{ scale: 0.9, opacity: 0, y: 50 }}
           animate={{ scale: 1, opacity: 1, y: 0 }}
-          exit={{ scale: 0.9, opacity: 0, y: 20 }}
-          transition={{ type: 'spring', damping: 25 }}
-          className="bg-white rounded-[32px] w-full max-w-lg shadow-2xl overflow-hidden"
+          exit={{ scale: 0.9, opacity: 0, y: 50 }}
+          className="bg-white rounded-[50px] w-full max-w-xl shadow-3xl overflow-hidden"
         >
           {/* Header */}
-          <div className="bg-gradient-to-br from-blue-600 to-indigo-700 p-8 text-white relative overflow-hidden">
-            <div className="absolute top-0 right-0 text-[120px] opacity-5 leading-none">🏥</div>
-            <div className="flex items-start justify-between relative z-10">
-              <div>
-                <span className="text-3xl mb-3 block">🏥</span>
-                <h2 className="text-2xl font-black tracking-tight">Find Help Near You</h2>
-                <p className="text-blue-200 text-sm font-medium mt-1">
-                  Doctors & hospitals for <span className="text-white font-black">{disease || 'your condition'}</span>
-                </p>
+          <div className="bg-gradient-to-br from-indigo-600 to-indigo-800 p-10 text-white relative">
+            <div className="absolute top-0 right-0 p-10 opacity-10 text-9xl">⚕️</div>
+            <div className="relative z-10 flex justify-between items-start">
+              <div className="space-y-3">
+                 <div className="bg-white/20 w-16 h-16 rounded-2xl flex items-center justify-center text-4xl shadow-xl">🏥</div>
+                 <h2 className="text-4xl font-black tracking-tight leading-none">Find Help Near You</h2>
+                 <p className="text-indigo-100 font-bold text-lg">Doctors for <span className="text-white underline">{disease || 'your health'}</span></p>
               </div>
-              <button
-                onClick={onClose}
-                className="w-10 h-10 bg-white/20 hover:bg-white/30 rounded-2xl flex items-center justify-center text-white font-black text-lg transition"
-              >
-                ✕
+              <button onClick={onClose} className="p-3 bg-white/10 hover:bg-white/20 rounded-2xl transition">
+                <HiX className="w-6 h-6" />
               </button>
             </div>
 
             {/* Location Status */}
-            <div className="mt-5 bg-white/10 rounded-2xl px-4 py-3 flex items-center space-x-3">
-              {locationState === 'loading' && (
-                <>
-                  <div className="w-4 h-4 border-2 border-white/60 border-t-white rounded-full animate-spin flex-shrink-0"></div>
-                  <span className="text-sm text-blue-100 font-medium">Detecting your location...</span>
-                </>
-              )}
-              {locationState === 'success' && (
-                <>
-                  <span className="text-green-300 text-lg flex-shrink-0">📍</span>
-                  <span className="text-sm text-white font-bold">
-                    Location detected: <span className="text-green-300">{locationName || 'Your area'}</span>
-                  </span>
-                </>
-              )}
-              {locationState === 'error' && (
-                <>
-                  <span className="flex-shrink-0">⚠️</span>
-                  <div className="flex-1">
-                    <span className="text-sm text-yellow-200 font-medium">Location access denied. </span>
-                    <button onClick={detectLocation} className="text-sm text-white underline font-bold">Try again</button>
+            <div className="mt-10 bg-white/10 backdrop-blur-md rounded-3xl p-5 flex items-center justify-between border border-white/10">
+               <div className="flex items-center space-x-4">
+                  <span className="text-3xl">📍</span>
+                  <div className="text-left">
+                     <p className="text-[10px] font-black uppercase tracking-widest text-indigo-200">Checking your place</p>
+                     <p className="font-black text-white">{locationState === 'success' ? locationName : locationState === 'loading' ? 'Searching GPS...' : 'Location needed'}</p>
                   </div>
-                </>
-              )}
-              {locationState === 'idle' && (
-                <>
-                  <span className="flex-shrink-0">📡</span>
-                  <span className="text-sm text-blue-100">Initializing GPS...</span>
-                </>
-              )}
+               </div>
+               {locationState !== 'success' && (
+                 <button onClick={detectLocation} className="px-4 py-2 bg-white text-indigo-700 rounded-xl font-black text-xs uppercase">Try Again</button>
+               )}
             </div>
           </div>
 
-          <div className="p-6 space-y-6 max-h-[60vh] overflow-y-auto">
-            {/* Google Maps Buttons */}
-            <div>
-              <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-3">Find Nearby</h3>
-              <div className="grid grid-cols-1 gap-3">
-                <a
-                  href={buildMapsUrl('doctor')}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center space-x-4 bg-blue-50 hover:bg-blue-100 border border-blue-100 rounded-2xl px-5 py-4 transition group"
-                >
-                  <div className="w-12 h-12 bg-blue-600 text-white rounded-2xl flex items-center justify-center text-xl flex-shrink-0 group-hover:scale-110 transition">🩺</div>
-                  <div>
-                    <p className="font-black text-gray-900">Specialist Doctors</p>
-                    <p className="text-xs text-gray-500 font-medium">Find {disease ? `${disease} specialists` : 'doctors'} near you</p>
-                  </div>
-                  <span className="ml-auto text-blue-500 font-black">→</span>
+          <div className="p-10 space-y-10 max-h-[60vh] overflow-y-auto custom-scrollbar">
+            {/* Find Expert */}
+            <div className="space-y-4">
+              <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest leading-none">Experts who can help</h3>
+              <div className="grid grid-cols-1 gap-4">
+                <a href={buildMapsUrl('doctor')} target="_blank" rel="noreferrer" className="flex items-center justify-between p-6 bg-indigo-50 hover:bg-indigo-100 rounded-[30px] border-2 border-indigo-100 transition-all group">
+                   <div className="flex items-center space-x-6">
+                      <span className="text-4xl group-hover:scale-125 transition-transform duration-500">👨‍⚕️</span>
+                      <div className="text-left">
+                         <p className="text-xl font-black text-slate-900">Dr. Specialists</p>
+                         <p className="text-sm text-slate-500 font-medium">Find doctors for {disease || 'health'}</p>
+                      </div>
+                   </div>
+                   <HiArrowRight className="w-8 h-8 text-indigo-400 group-hover:translate-x-2 transition-all" />
                 </a>
 
-                <a
-                  href={buildMapsUrl('hospital')}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center space-x-4 bg-green-50 hover:bg-green-100 border border-green-100 rounded-2xl px-5 py-4 transition group"
-                >
-                  <div className="w-12 h-12 bg-green-600 text-white rounded-2xl flex items-center justify-center text-xl flex-shrink-0 group-hover:scale-110 transition">🏥</div>
-                  <div>
-                    <p className="font-black text-gray-900">Nearby Hospitals</p>
-                    <p className="text-xs text-gray-500 font-medium">Emergency & outpatient facilities</p>
-                  </div>
-                  <span className="ml-auto text-green-500 font-black">→</span>
-                </a>
-
-                <a
-                  href={`https://www.google.com/maps/search/pharmacy+near+me${coords ? `/@${coords.lat},${coords.lng},15z` : ''}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center space-x-4 bg-purple-50 hover:bg-purple-100 border border-purple-100 rounded-2xl px-5 py-4 transition group"
-                >
-                  <div className="w-12 h-12 bg-purple-600 text-white rounded-2xl flex items-center justify-center text-xl flex-shrink-0 group-hover:scale-110 transition">💊</div>
-                  <div>
-                    <p className="font-black text-gray-900">Nearby Pharmacies</p>
-                    <p className="text-xs text-gray-500 font-medium">Get your medications quickly</p>
-                  </div>
-                  <span className="ml-auto text-purple-500 font-black">→</span>
+                <a href={buildMapsUrl('hospital')} target="_blank" rel="noreferrer" className="flex items-center justify-between p-6 bg-emerald-50 hover:bg-emerald-100 rounded-[30px] border-2 border-emerald-100 transition-all group">
+                   <div className="flex items-center space-x-6">
+                      <span className="text-4xl group-hover:scale-125 transition-transform duration-500">🏥</span>
+                      <div className="text-left">
+                         <p className="text-xl font-black text-slate-900">Big Hospitals</p>
+                         <p className="text-sm text-slate-500 font-medium">Place for emergency help</p>
+                      </div>
+                   </div>
+                   <HiArrowRight className="w-8 h-8 text-emerald-400 group-hover:translate-x-2 transition-all" />
                 </a>
               </div>
             </div>
 
-            {/* Emergency Contacts */}
-            <div>
-              <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-3">Emergency Contacts</h3>
-              <div className="space-y-2">
-                {getEmergencyContacts().map((contact, i) => (
-                  <div key={i} className={`flex items-center justify-between px-4 py-3 rounded-2xl border ${contact.color}`}>
-                    <span className="text-sm font-bold">{contact.label}</span>
-                    <a
-                      href={`tel:${contact.number.replace(/[^0-9+]/g, '')}`}
-                      className="font-black text-lg tracking-wider hover:underline"
-                    >
-                      {contact.number}
+            {/* Quick Call */}
+            <div className="space-y-4">
+               <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest leading-none">Quick Call (Emergency)</h3>
+               <div className="space-y-3">
+                  {getEmergencyContacts().map((contact, i) => (
+                    <a key={i} href={`tel:${contact.number}`} className={`flex items-center justify-between p-5 rounded-2xl border-2 hover:scale-[1.02] transition-all ${contact.color}`}>
+                       <span className="text-lg font-black">{contact.label}</span>
+                       <div className="flex items-center space-x-2">
+                          <HiPhone className="w-5 h-5" />
+                          <span className="text-2xl font-black">{contact.number}</span>
+                       </div>
                     </a>
-                  </div>
-                ))}
-              </div>
+                  ))}
+               </div>
             </div>
-
-            {/* Tip */}
-            <div className="bg-amber-50 border border-amber-100 rounded-2xl px-5 py-4">
-              <p className="text-amber-800 text-xs font-bold leading-relaxed">
-                💡 <span className="font-black">Tip:</span> Carry your HealthGuard AI PDF report to your doctor's appointment. It contains your full diagnostic profile and risk analysis.
-              </p>
+            
+            {/* Advice */}
+            <div className="p-8 bg-amber-50 rounded-[30px] border-2 border-amber-100 flex items-start space-x-4">
+               <span className="text-3xl">💡</span>
+               <p className="text-amber-800 font-bold leading-relaxed">
+                 <span className="font-black">Helpful Tip:</span> Show your downloaded report to the doctor. It helps them understand you faster!
+               </p>
             </div>
           </div>
 
-          <div className="px-6 pb-6">
-            <button
-              onClick={onClose}
-              className="w-full py-4 bg-gray-100 hover:bg-gray-200 text-gray-700 font-black text-xs uppercase tracking-widest rounded-2xl transition"
-            >
-              Close
-            </button>
+          <div className="p-10 bg-slate-50 border-t border-slate-100">
+             <button onClick={onClose} className="w-full h-16 bg-white text-slate-400 hover:text-indigo-600 font-black text-lg uppercase tracking-widest rounded-3xl border-2 border-slate-100 transition-all">
+               Close This
+             </button>
           </div>
         </motion.div>
       </motion.div>

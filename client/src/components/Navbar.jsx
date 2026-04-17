@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
-import { HiMenu, HiX, HiUserCircle, HiLogout, HiViewGrid, HiPlusCircle } from 'react-icons/hi';
+import { HiMenu, HiX, HiUserCircle, HiLogout, HiViewGrid, HiPlusCircle, HiHeart } from 'react-icons/hi';
 
 const Navbar = () => {
   const { user, logout } = useAuth();
@@ -15,71 +16,77 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100 shadow-sm">
+    <nav className="sticky top-0 z-[100] bg-white/90 backdrop-blur-xl border-b border-slate-100 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16">
+        <div className="flex justify-between h-20">
           {/* Logo Section */}
           <div className="flex items-center">
-            <Link to="/" className="flex items-center space-x-2 group">
-              <span className="text-2xl" role="img" aria-label="pulse">🏥</span>
-              <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent group-hover:from-blue-700 group-hover:to-indigo-700 transition">
+            <Link to="/" className="flex items-center space-x-3 group">
+              <div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center text-2xl shadow-lg shadow-indigo-100 group-hover:rotate-12 transition-all">
+                🏥
+              </div>
+              <span className="text-2xl font-black bg-gradient-to-r from-indigo-700 to-blue-600 bg-clip-text text-transparent tracking-tighter">
                 HealthGuard AI
               </span>
             </Link>
           </div>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-8">
+          <div className="hidden md:flex items-center space-x-10 text-sm font-black uppercase tracking-widest">
             {user ? (
               <>
-                <Link to="/dashboard" className="flex items-center space-x-1 text-gray-600 hover:text-blue-600 font-medium transition">
-                  <HiViewGrid className="w-5 h-5" />
-                  <span>Dashboard</span>
+                <Link to="/dashboard" className="flex items-center space-x-2 text-slate-400 hover:text-indigo-600 transition-all group">
+                   <HiViewGrid className="w-5 h-5 group-hover:scale-110 transition" />
+                   <span>My History</span>
                 </Link>
-                <Link to="/predict" className="flex items-center space-x-1 text-gray-600 hover:text-blue-600 font-medium transition">
-                  <HiPlusCircle className="w-5 h-5" />
-                  <span>New Prediction</span>
+                <Link to="/predict" className="flex items-center space-x-2 text-slate-400 hover:text-indigo-600 transition-all group">
+                   <HiPlusCircle className="w-5 h-5 group-hover:scale-110 transition" />
+                   <span>Start Scan</span>
                 </Link>
                 
                 {/* User Dropdown */}
-                <div className="relative">
+                <div className="relative pl-6 border-l border-slate-100">
                   <button 
                     onClick={() => setProfileOpen(!profileOpen)}
-                    className="flex items-center space-x-2 focus:outline-none"
+                    className="flex items-center space-x-3 focus:outline-none group"
                   >
-                    <div className="w-9 h-9 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center font-bold border-2 border-blue-50">
+                    <div className="text-right hidden lg:block">
+                       <p className="text-[10px] text-slate-400 leading-none mb-1">Welcome back,</p>
+                       <p className="text-slate-900 leading-none">{user.name.split(' ')[0]}</p>
+                    </div>
+                    <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center border-2 border-indigo-100 group-hover:bg-indigo-600 group-hover:text-white transition-all shadow-md">
                       {user.name.charAt(0).toUpperCase()}
                     </div>
                   </button>
                   
                   {profileOpen && (
-                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 py-2 animate-in fade-in slide-in-from-top-3">
-                      <div className="px-4 py-2 border-b border-gray-50 mb-1">
-                        <p className="text-sm font-semibold text-gray-900 truncate">{user.name}</p>
-                        <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                    <div className="absolute right-0 mt-4 w-56 bg-white rounded-[30px] shadow-2xl border border-slate-100 py-3 animate-in fade-in slide-in-from-top-3 overflow-hidden">
+                      <div className="px-6 py-4 border-b border-slate-50 mb-2">
+                        <p className="text-sm font-black text-slate-900 truncate">{user.name}</p>
+                        <p className="text-[10px] text-slate-400 truncate">{user.email}</p>
                       </div>
-                      <button className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-2">
-                        <HiUserCircle className="w-4 h-4" />
-                        <span>My Profile</span>
+                      <button className="w-full text-left px-6 py-3 text-slate-600 hover:bg-slate-50 flex items-center space-x-3 transition">
+                        <HiUserCircle className="w-5 h-5 text-indigo-500" />
+                        <span className="text-xs font-black uppercase tracking-widest">My Profile</span>
                       </button>
                       <button 
                         onClick={handleLogout}
-                        className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center space-x-2"
+                        className="w-full text-left px-6 py-3 text-rose-500 hover:bg-rose-50 flex items-center space-x-3 transition"
                       >
-                        <HiLogout className="w-4 h-4" />
-                        <span>Logout</span>
+                        <HiLogout className="w-5 h-5" />
+                        <span className="text-xs font-black uppercase tracking-widest">Logout</span>
                       </button>
                     </div>
                   )}
                 </div>
               </>
             ) : (
-              <div className="flex items-center space-x-4">
-                <Link to="/login" className="text-gray-600 hover:text-blue-600 font-medium transition">
+              <div className="flex items-center space-x-6">
+                <Link to="/login" className="text-slate-500 hover:text-indigo-600 transition font-black">
                   Login
                 </Link>
-                <Link to="/register" className="bg-blue-600 text-white px-5 py-2 rounded-full font-medium hover:bg-blue-700 shadow-md hover:shadow-lg transition transform hover:-translate-y-0.5 active:scale-95">
-                  Get Started
+                <Link to="/register" className="bg-indigo-600 text-white px-8 py-4 rounded-2xl font-black shadow-xl shadow-indigo-100 hover:bg-indigo-700 transition transform hover:-translate-y-1 active:scale-95">
+                  Join Now ✨
                 </Link>
               </div>
             )}
@@ -89,7 +96,7 @@ const Navbar = () => {
           <div className="md:hidden flex items-center">
             <button 
               onClick={() => setIsOpen(!isOpen)}
-              className="text-gray-500 hover:text-blue-600 focus:outline-none"
+              className="w-12 h-12 flex items-center justify-center text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-2xl transition"
             >
               {isOpen ? <HiX className="w-8 h-8" /> : <HiMenu className="w-8 h-8" />}
             </button>
@@ -98,27 +105,41 @@ const Navbar = () => {
       </div>
 
       {/* Mobile Menu */}
-      {isOpen && (
-        <div className="md:hidden bg-white border-t border-gray-100 px-4 py-4 space-y-2 shadow-inner">
-          {user ? (
-            <>
-              <Link to="/dashboard" onClick={() => setIsOpen(false)} className="block px-4 py-3 text-gray-700 hover:bg-blue-50 rounded-xl transition">Dashboard</Link>
-              <Link to="/predict" onClick={() => setIsOpen(false)} className="block px-4 py-3 text-gray-700 hover:bg-blue-50 rounded-xl transition">New Prediction</Link>
-              <button 
-                onClick={handleLogout}
-                className="w-full text-left px-4 py-3 text-red-600 hover:bg-red-50 rounded-xl transition"
-              >
-                Logout
-              </button>
-            </>
-          ) : (
-            <>
-              <Link to="/login" onClick={() => setIsOpen(false)} className="block px-4 py-3 text-gray-700 hover:bg-blue-50 rounded-xl transition">Login</Link>
-              <Link to="/register" onClick={() => setIsOpen(false)} className="block px-4 py-3 bg-blue-600 text-white text-center rounded-xl font-medium">Get Started</Link>
-            </>
-          )}
-        </div>
-      )}
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div 
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="md:hidden bg-white border-t border-slate-100 p-6 space-y-4 shadow-inner"
+          >
+            {user ? (
+              <>
+                <Link to="/dashboard" onClick={() => setIsOpen(false)} className="flex items-center space-x-4 px-6 py-5 text-slate-700 hover:bg-indigo-50 rounded-[25px] transition font-black uppercase text-xs tracking-widest leading-none">
+                  <HiViewGrid className="w-6 h-6 text-indigo-500" />
+                  <span>My History</span>
+                </Link>
+                <Link to="/predict" onClick={() => setIsOpen(false)} className="flex items-center space-x-4 px-6 py-5 text-slate-700 hover:bg-indigo-50 rounded-[25px] transition font-black uppercase text-xs tracking-widest leading-none">
+                  <HiPlusCircle className="w-6 h-6 text-indigo-500" />
+                  <span>Start Scan</span>
+                </Link>
+                <button 
+                  onClick={handleLogout}
+                  className="w-full flex items-center space-x-4 px-6 py-5 text-rose-500 hover:bg-rose-50 rounded-[25px] transition font-black uppercase text-xs tracking-widest leading-none"
+                >
+                  <HiLogout className="w-6 h-6" />
+                  <span>Logout</span>
+                </button>
+              </>
+            ) : (
+              <>
+                <Link to="/login" onClick={() => setIsOpen(false)} className="block px-6 py-5 text-slate-700 hover:bg-indigo-50 rounded-[25px] transition font-black uppercase text-xs tracking-widest text-center leading-none">Login</Link>
+                <Link to="/register" onClick={() => setIsOpen(false)} className="block px-6 py-5 bg-indigo-600 text-white text-center rounded-[25px] font-black uppercase text-xs tracking-widest leading-none">Join Now ✨</Link>
+              </>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </nav>
   );
 };

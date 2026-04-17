@@ -1,6 +1,27 @@
 import React from 'react';
 import { HiCheckCircle, HiExclamationCircle, HiShieldCheck } from 'react-icons/hi';
 
+const getIcon = (slug) => {
+  if (!slug || typeof slug !== 'string') return '✅';
+  const mapping = {
+    biotech: '🧪',
+    medication: '💊',
+    accessibility: '♿',
+    no_meals: '🍽️',
+    block: '🚫',
+    warning: '🚨',
+    fitness: '🏃',
+    restaurant: '🥗',
+    blood: '🩸',
+    heart: '❤️',
+    sleep: '😴',
+    water: '💧',
+    doctor: '🩺',
+    hospital: '🏥'
+  };
+  return mapping[slug.toLowerCase()] || '✅';
+};
+
 const DosAndDonts = ({ dos = [], donts = [] }) => {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -16,10 +37,10 @@ const DosAndDonts = ({ dos = [], donts = [] }) => {
           <div key={i} className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition space-y-4">
             <div className="flex items-start justify-between">
                <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 bg-green-50 text-green-600 rounded-full flex items-center justify-center text-xl">
-                    {item.icon || '✅'}
+                  <div className="w-10 h-10 bg-green-50 text-green-600 rounded-full flex items-center justify-center text-2xl flex-shrink-0">
+                    {getIcon(item.icon)}
                   </div>
-                  <h4 className="font-bold text-gray-900">{item.action}</h4>
+                  <h4 className="font-bold text-gray-900 leading-tight">{item.action}</h4>
                </div>
                <span className="px-3 py-1 bg-green-100 text-green-700 text-[10px] uppercase font-black rounded-full">
                  {item.frequency}
@@ -49,10 +70,10 @@ const DosAndDonts = ({ dos = [], donts = [] }) => {
           <div key={i} className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition space-y-4">
             <div className="flex items-start justify-between">
                <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 bg-red-50 text-red-600 rounded-full flex items-center justify-center text-xl">
-                    {item.icon || '🚫'}
+                  <div className="w-10 h-10 bg-red-50 text-red-600 rounded-full flex items-center justify-center text-2xl flex-shrink-0">
+                    {getIcon(item.icon)}
                   </div>
-                  <h4 className="font-bold text-gray-900">{item.action}</h4>
+                  <h4 className="font-bold text-gray-900 leading-tight">{item.action}</h4>
                </div>
             </div>
             <p className="text-sm text-gray-500 leading-relaxed italic">{item.reason}</p>

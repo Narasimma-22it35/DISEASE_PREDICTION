@@ -1,6 +1,27 @@
 import React from 'react';
 import { HiLightningBolt, HiClock, HiExclamation } from 'react-icons/hi';
 
+const getIcon = (slug) => {
+  if (!slug || typeof slug !== 'string') return '💡';
+  const mapping = {
+    biotech: '🧪',
+    medication: '💊',
+    accessibility: '♿',
+    no_meals: '🍽️',
+    block: '🚫',
+    warning: '🚨',
+    fitness: '🏃',
+    restaurant: '🥗',
+    blood: '🩸',
+    heart: '❤️',
+    sleep: '😴',
+    water: '💧',
+    doctor: '🩺',
+    hospital: '🏥'
+  };
+  return mapping[slug.toLowerCase()] || '💡';
+};
+
 const OvercomeTips = ({ tips = [] }) => {
   const getPriorityColor = (p) => {
     switch (p?.toLowerCase()) {
@@ -19,8 +40,8 @@ const OvercomeTips = ({ tips = [] }) => {
           className="bg-white p-6 rounded-3xl border-l-[6px] border-l-blue-600 border border-gray-100 shadow-sm hover:shadow-lg transition flex flex-col h-full"
         >
           <div className="flex items-start justify-between mb-4">
-            <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center text-2xl">
-              <HiLightningBolt />
+            <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center text-3xl flex-shrink-0">
+               {getIcon(tip.icon)}
             </div>
             <div className="flex flex-col items-end space-y-2">
                <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase ring-1 ${getPriorityColor(tip.priority)}`}>

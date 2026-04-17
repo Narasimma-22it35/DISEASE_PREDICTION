@@ -72,6 +72,7 @@ def detect():
     try:
         # 1. Get Gemini Diagnosis
         diagnosis = detect_diseases(patient_data)
+        print("output diagnosis: ", diagnosis)
         
         # 2. Process Primary Disease with ML if available
         primary = diagnosis.get('primary_disease')
