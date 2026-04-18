@@ -110,24 +110,4 @@ npm start
 
 ---
 
-## 👨‍🏫 6. Interview Q&A (Preparation Tips)
 
-### **Q1: Why did you use a separate Python server for AI?**
-> *"Node.js is excellent for handling many concurrent users and API requests, but Python is the industry standard for Data Science. By using a separate Flask microservice, I can use libraries like scikit-learn and pandas which aren't natively available in the MERN stack."*
-
-### **Q2: How do you handle Gemini API rate limits?**
-> *"I implemented a **Cascading Fallback Wrapper**. If the primary model (Gemini 2.5 Flash) hits a quota limit, my script automatically switches to Gemini 1.5 Flash, then Gemini Pro, with exponential backoff retries. This ensures the app stays live even under heavy use."*
-
-### **Q3: How do you ensure data security?**
-> *"We use **JWT-based authentication** for all diagnostic routes. User passwords are never stored in plain text; they are hashed using **bcrypt**. Additionally, medical reports are processed in-memory or deleted immediately after analysis to protect patient privacy."*
-
-### **Q4: What was the most challenging bug?**
-> *"Handling missing data in medical datasets. I had to implement **Median Imputation** and robust string mapping in my training script to ensure the ML models received consistent data without crashing due to single-class errors."*
-
----
-
-> [!TIP]
-> **Pro Tip for Interview**: When discussing this project, emphasize **"End-to-End Care."** Mention how the project doesn't just predict a disease, but provides a health plan, a voice guide, and a hospital map to ensure the patient knows exactly what to do next.
-
----
-© 2026 HealthGuard AI Project Documentation
