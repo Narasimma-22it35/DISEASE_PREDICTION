@@ -1,15 +1,14 @@
 import os
 import json
-import google.generativeai as genai
+from google import genai
 from dotenv import load_dotenv
 
 # Load environment variables
 load_dotenv()
 
-# Configure Gemini
-genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-
-model = genai.GenerativeModel('gemini-2.5-flash')
+# Configure Gemini client
+client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+MODEL_NAME = 'gemini-2.5-flash'
 
 def detect_diseases(patient_data: dict):
     """

@@ -75,14 +75,7 @@ io.on('connection', (socket) => {
   });
 });
 
-// Socket.io initialization
-io.on('connection', (socket) => {
-  console.log('New client connected:', socket.id);
 
-  socket.on('disconnect', () => {
-    console.log('Client disconnected:', socket.id);
-  });
-});
 
 // Error Handler (Must be after routes)
 app.use(errorHandler);

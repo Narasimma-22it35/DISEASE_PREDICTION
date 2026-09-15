@@ -4,7 +4,7 @@ scikit-learn
 pandas
 numpy
 shap
-google-generativeai
+google-genai
 pdf2image
 Pillow
 requests

@@ -1,7 +1,7 @@
 import os
 import json
 import base64
-import google.generativeai as genai
+from google import genai
 from PIL import Image
 from pdf2image import convert_from_path
 from dotenv import load_dotenv
@@ -9,10 +9,9 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
 
-# Configure Gemini
-genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-
-model = genai.GenerativeModel('gemini-1.5-flash')
+# Configure Gemini client
+client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+MODEL_NAME = 'gemini-1.5-flash'
 
 def read_medical_report(file_path: str):
     """

@@ -25,7 +25,7 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 def log_ai(msg, level="INFO"):
     """Custom logger to ensure terminal output is shown immediately."""
-    prefix = "🚀 [AI ENGINE]" if level == "INFO" else "⚠️ [AI ERROR]"
+    prefix = "[AI ENGINE]" if level == "INFO" else "[AI ERROR]"
     print(f"{prefix} {msg}", flush=True)
 
 # Startup confirmation
